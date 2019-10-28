@@ -1,4 +1,13 @@
-# how profile分析慢查询
+---
+layout:     post
+title:      "Show profile分析慢查询"
+date:       2019-10-28 00:00:00
+author:     "jiefang"
+header-style: text
+tags:
+    - MySQL
+---
+# Show profile分析慢查询
 ## 确定是否支持profile
 
 ```

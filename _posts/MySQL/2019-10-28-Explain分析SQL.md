@@ -1,3 +1,12 @@
+---
+layout:     post
+title:      "Explain分析SQL"
+date:       2019-10-28 00:00:00
+author:     "jiefang"
+header-style: text
+tags:
+    - MySQL
+---
 # Explain分析SQL
 
 ## Explain结果

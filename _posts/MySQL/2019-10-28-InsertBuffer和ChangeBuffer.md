@@ -1,3 +1,12 @@
+---
+layout:     post
+title:      "InsertBuffer和ChangeBuffer"
+date:       2019-10-28 00:00:00
+author:     "jiefang"
+header-style: text
+tags:
+    - MySQL
+---
 # InsertBuffer和ChangeBuffer
 ## InsertBuffer
 对于非聚集索引的插入时，先判断插入的非聚集索引页是否在缓冲池中。如果在，则直接插入；

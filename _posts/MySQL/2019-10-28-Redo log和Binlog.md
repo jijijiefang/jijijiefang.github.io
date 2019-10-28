@@ -1,3 +1,12 @@
+---
+layout:     post
+title:      "Redo log和Binlog"
+date:       2019-10-28 00:00:00
+author:     "jiefang"
+header-style: text
+tags:
+    - MySQL
+---
 ## Redo log
 Redo log 称为重做日志，用于记录事务操作变化，记录的是数据被修改之后的值。
 Redo log 由两部分组成：
