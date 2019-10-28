@@ -1,0 +1,81 @@
+---
+layout:     post
+title:      "CMS GC的7个阶段"
+subtitle:   "Hello World"
+date:       2019-10-28 00:00:00
+author:     "jiefang"
+header-style: text
+tags:
+    - JVM
+---
+## CMS GC的7个阶段
+### Initial Mark（初始化标记）
+初始化标记阶段，是CMS GC的第一个阶段，也是标记阶段的开始。主要工作是标记可直达的存活对象。
+
+主要标记过程
+
+- 从GC Roots遍历可直达的老年代对象；
+- 遍历被新生代存活对象所引用的老年代对象。
+
+程序执行情况
+- 支持单线程或并行标记。
+- 发生stop-the-world，暂停所有应用线程。
+
+![image](http://dl2.iteye.com/upload/attachment/0131/2068/968e71fc-3298-3263-8918-8363a5ba867a.png)
+
+### Concurrent Mark（并发标记）
+
+并发标记阶段，是CMS GC的第二个阶段。
+
+在该阶段，GC线程和应用线程将并发执行。也就是说，在第一个阶段（Initial Mark）被暂停的应用线程将恢复运行。
+
+并发标记阶段的主要工作是，通过遍历第一个阶段（Initial Mark）标记出来的存活对象，继续递归遍历老年代，并标记可直接或间接到达的所有老年代存活对象。
+![image](http://dl2.iteye.com/upload/attachment/0131/2070/71fcfc2a-b343-3cab-99ef-a63d36df2b2d.png)
+由于在并发标记阶段，应用线程和GC线程是并发执行的，因此可能产生新的对象或对象关系发生变化，例如：
+
+- 新生代的对象晋升到老年代；
+- 直接在老年代分配对象；
+- 老年代对象的引用关系发生变更；
+- 等等。
+
+对于这些对象，需要重新标记以防止被遗漏。为了提高重新标记的效率，本阶段会把这些发生变化的对象所在的Card标识为Dirty，这样后续就只需要扫描这些Dirty Card的对象，从而避免扫描整个老年代。
+### Concurrent Preclean（并发预清理）
+在并发预清洗阶段，将会重新扫描前一个阶段标记的Dirty对象，并标记被Dirty对象直接或间接引用的对象，然后清除Card标识。
+
+标记被Dirty对象直接或间接引用的对象：
+![image](http://dl2.iteye.com/upload/attachment/0131/2072/b07e5898-013c-3bc5-bb1d-0b67949fee65.png)
+
+清除Dirty对象的Card标识：
+![image](http://dl2.iteye.com/upload/attachment/0131/2074/56495ecc-b70b-3695-963d-05360c9a75fe.png)
+
+### Concurrent Abortable Preclean（可中止的并发预清理）
+本阶段尽可能承担更多的并发预处理工作，从而减轻在Final Remark阶段的stop-the-world。
+
+在该阶段，主要循环的做两件事：
+
+- 处理 From 和 To 区的对象，标记可达的老年代对象；
+- 和上一个阶段一样，扫描处理Dirty Card中的对象。
+
+具体执行多久，取决于许多因素，满足其中一个条件将会中止运行：
+
+- 执行循环次数达到了阈值；
+- 执行时间达到了阈值；
+- 新生代Eden区的内存使用率达到了阈值。
+
+### Final Remark（重新标记）
+预清理阶段也是并发执行的，并不一定是所有存活对象都会被标记，因为在并发标记的过程中对象及其引用关系还在不断变化中。
+
+因此，需要有一个stop-the-world的阶段来完成最后的标记工作，这就是重新标记阶段（CMS标记阶段的最后一个阶段）。主要目的是重新扫描之前并发处理阶段的所有残留更新对象。
+
+主要工作：
+
+- 遍历新生代对象，重新标记；（新生代会被分块，多线程扫描）
+- 根据GC Roots，重新标记；
+- 遍历老年代的Dirty Card，重新标记。这里的Dirty Card，大部分已经在Preclean阶段被处理过了。
+
+### Concurrent Sweep（并发清理）
+并发清理阶段，主要工作是清理所有未被标记的死亡对象，回收被占用的空间。
+![image](http://dl2.iteye.com/upload/attachment/0131/2076/d3bd25bd-e2aa-3552-8b12-e2dc9a978067.png)
+
+### Concurrent Reset（并发重置）
+并发重置阶段，将清理并恢复在CMS GC过程中的各种状态，重新初始化CMS相关数据结构，为下一个垃圾收集周期做好准备。
