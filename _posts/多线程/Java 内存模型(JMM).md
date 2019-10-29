@@ -1,0 +1,251 @@
+---
+layout:     post
+title:      "Java 内存模型(JMM)"
+date:       2019-10-29 00:00:00
+author:     "jiefang"
+header-style: text
+tags:
+    - 多线程
+---
+# Java 内存模型(JMM)
+- 原子性
+- 可见性
+- 有序性
+### 原子性
+
+> 原子性：即一个操作或者多个操作，要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行。
+```
+i = 0;  // <1>
+j = i ;  // <2>
+i++;  // <3>
+i = j + 1; // <4>
+```
+> - <1>:在 Java 中，对基本数据类型的变量和赋值操作都是原子性操作。
+> - <2>:包含了两个操作：读取 i，将 i 值赋值给 j 。
+> - <3>:包含了三个操作：读取 i 值、i + 1 、将 +1 结果赋值给 i 。
+> - <4>:同 <3> 一样。
+
+### 可见性
+
+> 可见性：是指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值。
+
+在多线程环境下，一个线程对共享变量的操作对其他线程是不可见的。
+**Java提供了 volatile 来保证可见性。**
+
+当一个变量被 volatile修饰后，表示着线程本地内存无效。当一个线程修改共享变量后他会立即被更新到主内存中；当其他线程读取共享变量时，它会直接从主内存中读取。
+
+当然，synchronize 和锁都可以保证可见性。
+
+### 有序性
+> 有序性：即程序执行的顺序按照代码的先后顺序执行。
+
+在 Java 内存模型中，为了效率是允许编译器和处理器对指令进行重排序，当然重排序它不会影响单线程的运行结果，但是对多线程会有影响。
+
+---
+## 1、线程通信机制
+### 线程之间的通信机制有两种：共享内存和消息传递。
+#### Java 的并发采用的是共享内存模型
+在共享内存的并发模型里，线程之间共享程序的公共状态，线程之间通过写 - 读内存中的公共状态来隐式进行通信。在消息传递的并发模型里，线程之间没有公共状态，线程之间必须通过明确的发送消息来显式进行通信。
+
+![image](https://static001.infoq.cn/resource/image/b0/9b/b098a84eb7598d70913444a991d1759b.png)
+
+---
+## 2、重排序
+在执行程序时为了提高性能，编译器和处理器常常会对指令做重排序。重排序分三种类型：
+
+- **编译器优化的重排序**。编译器在不改变单线程程序语义的前提下，可以重新安排语句的执行顺序。
+- **指令级并行的重排序**。现代处理器采用了指令级并行技术（Instruction-Level Parallelism， ILP）来将多条指令重叠执行。如果不存在数据依赖性，处理器可以改变语句对应机器指令的执行顺序。
+- **内存系统的重排序**。由于处理器使用缓存和读/写缓冲区，这使得加载和存储操作看上去可能是在乱序执行。
+
+### 数据依赖性
+如果两个操作访问同一个变量，且这两个操作中有一个为写操作，此时这两个操作之间就存在数据依赖性。数据依赖分下列三种类型：
+
+名称 | 代码示例|说明
+---|---|---
+写后读|	a = 1;b = a;|写一个变量之后，再读这个位置。
+写后写| a = 1;a = 2;|写一个变量之后，再写这个变量。
+读后写| a = b;b = 1;|读一个变量之后，再写这个变量。
+
+**仅针对单个处理器中执行的指令序列和单个线程中执行的操作,编译器和处理器在重排序时，会遵守数据依赖性，编译器和处理器不会改变存在数据依赖关系的两个操作的执行顺序。**
+### as-if-serial 语义
+as-if-serial 语义的意思指：==不管怎么重排序（编译器和处理器为了提高并行度），（单线程）程序的执行结果不能被改变。编译器，runtime 和处理器都必须遵守 as-if-serial 语义。==
+
+as-if-serial 语义把单线程程序保护了起来，遵守as-if-serial语义的编译器，runtime和处理器共同为编写单线程程序的程序员创建了一个幻觉：单线程程序是按程序的顺序来执行的。as-if-serial语义使单线程程序员无需担心重排序会干扰他们，也无需担心内存可见性问题。
+
+### 重排序对多线程的影响
+```
+class ReorderExample {
+    int a = 0;
+    boolean flag = false;
+    
+    public void writer() {
+        a = 1;                   //1
+        flag = true;             //2
+    }
+    
+    Public void reader() {
+        if (flag) {                //3
+            int i =  a * a;        //4
+            ……
+        }
+    }
+}
+```
+![image](https://static001.infoq.cn/resource/image/ae/d8/aef14e33b3f92d5b045b338509a7d0d8.png)
+![image](https://static001.infoq.cn/resource/image/49/48/49ae9eb5df8f260d46dc2c84a48a7748.png)
+
+在单线程程序中，对存在控制依赖的操作重排序，不会改变执行结果（这也是 as-if-serial 语义允许对存在控制依赖的操作做重排序的原因）；但在多线程程序中，对存在控制依赖的操作重排序，可能会改变程序的执行结果。
+
+---
+## 3、顺序一致性
+### 数据竞争与顺序一致性保证
+当程序未正确同步时，就会存在数据竞争。java 内存模型规范对数据竞争的定义如下：
+
+- 在一个线程中写一个变量，
+- 在另一个线程读同一个变量，
+- 而且写和读没有通过同步来排序。
+
+如果一个多线程程序能正确同步，这个程序将是一个没有数据竞争的程序。
+
+JMM 对正确同步的多线程程序的内存一致性做了如下保证：
+
+- 如果程序是正确同步的，程序的执行将具有顺序一致性（sequentially consistent）-- 即程序的执行结果与该程序在顺序一致性内存模型中的执行结果相同。这里的同步是指广义上的同步，包括对常用同步原语（lock，volatile 和 final）的正确使用。
+
+### 顺序一致性内存模型
+顺序一致性内存模型有两大特性：
+
+- 一个线程中的所有操作必须按照程序的顺序来执行。
+- （不管程序是否同步）所有线程都只能看到一个单一的操作执行顺序。在顺序一致性内存模型中，每个操作都必须原子执行且立刻对所有线程可见。
+
+顺序一致性内存模型为程序员提供的视图如下：
+![image](https://static001.infoq.cn/resource/image/49/a5/4987a0c005023fbbab06293aa2c36da5.png)
+
+在概念上，顺序一致性模型有一个单一的全局内存，这个内存通过一个左右摆动的开关可以连接到任意一个线程。同时，每一个线程必须按程序的顺序来执行内存读 / 写操作。从上图我们可以看出，在任意时间点最多只能有一个线程可以连接到内存。当多个线程并发执行时，图中的开关装置能把所有线程的所有内存读 / 写操作串行化。
+
+---
+## 4、happens-before
+JSR-133 提出了 happens-before 的概念，通过这个概念来阐述操作之间的内存可见性。==如果一个操作执行的结果需要对另一个操作可见，那么这两个操作之间必须存在 happens-before 关系==。这里提到的两个操作既可以是在一个线程之内，也可以是在不同线程之间。 与程序员密切相关的 happens-before 规则如下：
+
+- 程序顺序规则：一个线程中的每个操作，happens- before 于该线程中的任意后续操作。
+- 监视器锁规则：对一个监视器锁的解锁，happens- before 于随后对这个监视器锁的加锁。
+- volatile 变量规则：对一个 volatile 域的写，happens- before 于任意后续对这个 volatile 域的读。
+- 传递性：如果 A happens- before B，且 B happens- before C，那么 A happens- before C。
+
+注意，**两个操作之间具有 happens-before 关系，并不意味着前一个操作必须要在后一个操作之前执行**！happens-before 仅仅要求前一个操作（执行的结果）对后一个操作可见，且前一个操作按顺序排在第二个操作之前.
+
+happens-before 规则通常对应于多个编译器重排序规则和处理器重排序规则
+happens-before 与 JMM 的关系:
+![image](https://static001.infoq.cn/resource/image/bc/63/bc22eaae1a77f9e1a6c09f4b6a833163.png)
+
+---
+## 5、synchronized
+### 锁的释放-获取建立的 happens before 关系
+```
+class MonitorExample {
+    int a = 0;
+
+    public synchronized void writer() {  //1
+        a++;                             //2
+    }                                    //3
+
+    public synchronized void reader() {  //4
+        int i = a;                       //5
+        ……
+    }                                    //6
+}
+```
+![image](https://s2.ax1x.com/2019/10/29/KR8NY8.jpg)
+
+### 锁释放和获取的内存语义
+当线程释放锁时，JMM会把该线程对应的本地内存中的共享变量刷新到主内存中。
+![image](https://s2.ax1x.com/2019/10/29/KR8X1e.png)
+当线程获取锁时，JMM会把该线程对应的本地内存置为无效。从而使得被监视器保护的临界区代码必须要从主内存中去读取共享变量。
+![image](https://s2.ax1x.com/2019/10/29/KRGVXj.png)
+
+对比锁释放 - 获取的内存语义与volatile写-读的内存语义，可以看出：**锁释放与 volatile 写有相同的内存语义；锁获取与 volatile 读有相同的内存语义**。
+
+### 锁内存语义的实现
+
+---
+## 6、volatile
+### volatile定义
+> **volatile**:可以保证线程可见性且提供了一定的有序性，但是无法保证原子性。在 JVM 底层，volatile 是采用“内存屏障”来实现的。
+
+volatile 变量自身具有下列特性：
+
+- 可见性。对一个 volatile 变量的读，总是能看到（任意线程）对这个 volatile 变量最后的写入。
+- 原子性：对任意单个 volatile 变量的读 / 写具有原子性，但类似于 volatile++ 这种复合操作不具有原子性。
+
+### volatile 写-读建立的 happens before 关系
+**volatile 变量规则**：对一个 volatile 域的写，happens- before 于任意后续对这个 volatile 域的读。
+```
+class VolatileExample {
+    int a = 0;
+    volatile boolean flag = false;
+    public void writer() {
+        a = 1;                   //1
+        flag = true;               //2
+    }
+
+    public void reader() {
+        if (flag) {                //3
+            int i =  a;           //4
+            ……
+        }
+    }
+}
+```
+假设线程 A 执行 writer() 方法之后，线程 B 执行 reader() 方法。根据 happens before 规则，这个过程建立的 happens before 关系可以分为两类：
+
+- 根据程序次序规则，1 happens before 2; 3 happens before 4。
+- 根据 volatile 规则，2 happens before 3。
+- 根据 happens before 的传递性规则，1 happens before 4。
+
+![happens before关系图](https://s2.ax1x.com/2019/10/25/KwCzz8.png)
+### volatile 写-读的内存语义
+volatile 的内存语义如下：
+- 当写一个 volatile 变量时，JMM会把该线程对应的本地内存中的共享变量刷新到主内存。
+- 当读一个 volatile 变量时，JMM会把该线程对应的本地内存置为无效。其它线程接下来将从主内存中读取共享变量。
+
+### volatile 内存语义的实现
+JMM 针对编译器制定的 volatile 重排序规则表：
+
+是否能重排序 | 第二个操作|--|--|
+---|---|---|---|
+第一个操作 |普通读 / 写|volatile 读|volatile 写|
+普通读 / 写| ||NO|
+volatile 读|NO|NO|NO|
+volatile 写||NO|NO|
+
+看出：
+
+- 当第二个操作是 volatile写时，不管第一个操作是什么，都不能重排序。这个规则确保 volatile 写之前的操作不会被编译器重排序到 volatile 写之后。
+- 当第一个操作是 volatile读时，不管第二个操作是什么，都不能重排序。这个规则确保 volatile 读之后的操作不会被编译器重排序到 volatile 读之前。
+- 当第一个操作是 volatile 写，第二个操作是 volatile 读时，不能重排序。
+ 
+基于保守策略的 JMM 内存屏障插入策略：
+
+- 在每个 volatile 写操作的前面插入一个 StoreStore 屏障。
+- 在每个 volatile 写操作的后面插入一个 StoreLoad 屏障。
+- 在每个 volatile 读操作的后面插入一个 LoadLoad 屏障。
+- 在每个 volatile 读操作的后面插入一个 LoadStore 屏障。
+
+保守策略下，volatile 写插入内存屏障后生成的指令序列示意图：
+
+![image](https://s2.ax1x.com/2019/10/29/KRnX4J.png)
+
+保守策略下，volatile 读插入内存屏障后生成的指令序列示意图：
+
+![image](https://s2.ax1x.com/2019/10/29/KRu9u6.png)
+
+### JSR-133 为什么要增强 volatile 的内存语义
+旧的内存模型中 ，volatile 的写 - 读没有监视器的释放 - 获所具有的内存语义。为了提供一种比监视器锁更轻量级的线程之间通信的机制，JSR-133 专家组决定增强 volatile 的内存语义：**严格限制编译器和处理器对 volatile 变量与普通变量的重排序，确保 volatile 的写 - 读和监视器的释放 - 获取一样，具有相同的内存语义**。
+---
+## 7、final
+
+
+---
+## 8、双重检查锁定（double-checked locking）
+
+
+---
