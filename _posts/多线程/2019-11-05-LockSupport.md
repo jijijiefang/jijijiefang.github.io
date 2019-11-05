@@ -34,7 +34,10 @@ public static void unpark(Thread thread) {
 ```
 ### 特色
 - 可以先unpark再park：相当于unpark时提供了一个许可，park时直接消耗这个许可，不会真正的阻塞。
+### 与wait和notify相比
 
+- wait和notify都是Object中的方法,在调用这两个方法前必须先获得锁对象，只能在同步代码块中调用；LockSupport不需要在同步代码块里。
+- unpark函数可以先于park调用；notify不能先于wait调用，否则会抛异常。
 ## 原理
 每个线程都有Parker实例,如下面的代码所示：
 ```
