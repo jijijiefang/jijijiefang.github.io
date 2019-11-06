@@ -1,13 +1,13 @@
 ---
 layout:     post
-title:      "AbstractQueuedSynchronizer源码分析-独占锁的获取"
+title:      "AbstractQueuedSynchronizer（同步器）源码分析-独占锁的获取"
 date:       2019-11-04 00:00:00
 author:     "jiefang"
 header-style: text
 tags:
     - 多线程
 ---
-# AbstractQueuedSynchronizer源码分析-独占锁的获取
+# AbstractQueuedSynchronizer（同步器）源码分析-独占锁的获取
 
 ## acquire(int arg)
 >`独占模式`下获取资源/锁，忽略中断的影响。

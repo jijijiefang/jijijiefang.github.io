@@ -1,13 +1,13 @@
 ---
 layout:     post
-title:      "AbstractQueuedSynchronizer简介"
+title:      "AbstractQueuedSynchronizer（同步器）简介"
 date:       2019-11-04 00:00:00
 author:     "jiefang"
 header-style: text
 tags:
     - 多线程
 ---
-# AbstractQueuedSynchronizer简介
+# AbstractQueuedSynchronizer（同步器）简介
 ## JUC三板斧
 了解以下JUC的设计套路，总结三板斧：
 >状态，队列，CAS

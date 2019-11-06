@@ -1,13 +1,13 @@
 ---
 layout:     post
-title:      "LockSupport"
+title:      "LockSupport阻塞原语"
 date:       2019-11-05 00:00:00
 author:     "jiefang"
 header-style: text
 tags:
     - 多线程
 ---
-# LockSupport
+# LockSupport阻塞原语
 >LockSupport是用来创建锁和其他同步类的基本线程阻塞原语
 
 ## 使用
