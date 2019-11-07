@@ -163,6 +163,26 @@ private void set(ThreadLocal<?> key, Object value) {
         rehash();
 }
 ```
+ThreadLocalMap.remove()方法：
+```
+//清除key和value防止内存泄露
+private void remove(ThreadLocal<?> key) {
+    Entry[] tab = table;
+    int len = tab.length;
+    int i = key.threadLocalHashCode & (len-1);
+    for (Entry e = tab[i];
+         e != null;
+         e = tab[i = nextIndex(i, len)]) {
+        if (e.get() == key) {
+            //key设置为null
+            e.clear();
+            //清除此Entry和
+            expungeStaleEntry(i);
+            return;
+        }
+    }
+}
+```
 ThreadLocalMap特点：
 - 使用ThreadLocal实例对象的**弱引用**作为key；
 - key的散列冲突使用**开放定址法**解决，而HashMap的key散列冲突使用**链地址法**解决；
