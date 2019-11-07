@@ -8,7 +8,7 @@ tags:
     - 多线程
     - JUC
 ---
-# AbstractQueuedSynchronizer（同步器）源码分析-独占锁的获取
+# AbstractQueuedSynchronizer源码分析-独占锁的获取
 
 ## acquire(int arg)
 >`独占模式`下获取资源/锁，忽略中断的影响。
@@ -17,6 +17,7 @@ tags:
 public final void acquire(int arg) {
         if (!tryAcquire(arg) &&
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            //线程争抢到锁后且线程中断状态为true，则调用线程中断方法
             selfInterrupt();
 }
 ```
@@ -187,6 +188,7 @@ final boolean acquireQueued(final Node node, int arg) {
             //在获取锁失败后, 判断是否需要把当前线程挂起
             if (shouldParkAfterFailedAcquire(p, node) &&
                 parkAndCheckInterrupt())
+                //返回中断状态为中断过
                 interrupted = true;
         }
     } finally {
@@ -224,6 +226,7 @@ private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
 private final boolean parkAndCheckInterrupt() {
     //线程被挂起，停在这里不再往下执行了
     LockSupport.park(this);
+    //当前线程前一节点唤醒后继节点后，继续执行，会返回线程中断状态并重置线程中断状态。
     return Thread.interrupted();
 }
 ```

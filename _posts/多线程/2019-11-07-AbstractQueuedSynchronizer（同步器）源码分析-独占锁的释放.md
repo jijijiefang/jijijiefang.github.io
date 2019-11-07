@@ -1,0 +1,85 @@
+---
+layout:     post
+title:      "AbstractQueuedSynchronizer（同步器）源码分析-独占锁的释放"
+date:       2019-11-07 00:00:00
+author:     "jiefang"
+header-style: text
+tags:
+    - 多线程
+    - JUC
+---
+# AbstractQueuedSynchronizer（同步器）源码分析-独占锁的释放
+JAVA的内置锁在退出临界区之后是会自动释放锁的, 但是ReentrantLock这样的显式锁是需要自己显式的释放
+```
+Lock lock = new ReentrantLock();
+...
+lock.lock();
+try {
+    ...
+} finally {
+    lock.unlock();
+}
+```
+- ReentrantLock的锁释放
+
+锁的释放操作对于公平锁和非公平锁都是一样的,unlock的逻辑并没有放在 FairSync 或 NonfairSync 里面, 而是直接定义在 ReentrantLock类中:
+```
+public void unlock() {
+    sync.release(1);
+}
+```
+## AQS.release()
+AQS中独占锁的释放源码：
+```
+public final boolean release(int arg) {
+    //尝试释放锁，由子类实现
+    if (tryRelease(arg)) {
+        Node h = head;
+        //唤醒后继线程是一个附加操作，无论是否成功唤醒，最后都会返回true
+        if (h != null && h.waitStatus != 0)
+            unparkSuccessor(h);
+        return true;
+    }
+    return false;
+}
+```
+ReentrantLock.Sync.tryRelease()方法源码：
+```
+//尝试释放锁，每次调用unlock，则state-1，如果state=0,则设置AQS锁拥有者线程为null，如果锁全部释放完毕，返回true。
+protected final boolean tryRelease(int releases) {
+    //可能会重入，state-1
+    int c = getState() - releases;
+    //如果当前调用释放锁的线程不是AQS锁的拥有者，则抛出异常
+    if (Thread.currentThread() != getExclusiveOwnerThread())
+        throw new IllegalMonitorStateException();
+    boolean free = false;
+    //c=0，锁全部释放完毕
+    if (c == 0) {
+        free = true;
+        setExclusiveOwnerThread(null);
+    }
+    setState(c);
+    return free;
+}
+```
+AQS.unparkSuccessor()方法源码：
+```
+private void unparkSuccessor(Node node) {
+    int ws = node.waitStatus;
+    //如果head节点的waitStatus小于0，则设为0。
+    if (ws < 0)
+        compareAndSetWaitStatus(node, ws, 0);
+    //如果后继节点存在且在等待锁，则唤醒；
+    //否则,从队列的尾节点开始向前寻找离head最近且waitStatus <= 0的节点。
+    Node s = node.next;
+    if (s == null || s.waitStatus > 0) {
+        s = null;
+        for (Node t = tail; t != null && t != node; t = t.prev)
+            if (t.waitStatus <= 0)
+                s = t;
+    }
+    //找到等待锁的节点唤醒
+    if (s != null)
+        LockSupport.unpark(s.thread);
+}
+```
