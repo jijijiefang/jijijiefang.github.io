@@ -176,7 +176,7 @@ private void remove(ThreadLocal<?> key) {
         if (e.get() == key) {
             //key设置为null
             e.clear();
-            //清除此Entry和
+            //清除此Entry和其它为null的Entry
             expungeStaleEntry(i);
             return;
         }
