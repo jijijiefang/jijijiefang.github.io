@@ -1,13 +1,14 @@
 ---
 layout:     post
-title:      "AQS-Condition接口实现"
+title:      "JUC-AQS-Condition接口实现"
 date:       2019-11-15 13:41:42
 author:     "jiefang"
 header-style: text
 tags:
     - 多线程
+    - JUC
 ---
-# AQS-Condition接口实现
+# JUC-AQS-Condition接口实现
 ## Condition简介
 Condition是关联在Lock上的条件，提供对线程更加灵活和详细的唤醒和等待操作。
 Condition与Object.wait和Object.notify的比较：

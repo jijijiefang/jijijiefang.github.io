@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "线程池"
+title:      "ThreadPoolExecutor（线程池）"
 date:       2019-11-03 00:00:00
 author:     "jiefang"
 header-style: text
@@ -8,7 +8,7 @@ tags:
     - 多线程
     - JUC
 ---
-# 线程池
+# ThreadPoolExecutor（线程池）
 
 ## 概述
 >ThreadPoolExecutor 是线程池的核心实现。线程的创建和终止需要很大的开销，线程池中预先提供了指定数量的可重用线程，所以使用线程池会节省系统资源，并且每个线程池都维护了一些基础的数据统计，方便线程的管理和监控。
