@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "JUC-可重入锁：ReentrantLock"
+title:      "JUC-ReentrantLock（可重入锁）"
 date:       2019-11-15 18:16:06
 author:     "jiefang"
 header-style: text
