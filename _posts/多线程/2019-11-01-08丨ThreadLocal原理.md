@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "ThreadLocal原理"
+title:      "08丨ThreadLocal原理"
 date:       2019-11-05 00:00:00
 author:     "jiefang"
 header-style: text

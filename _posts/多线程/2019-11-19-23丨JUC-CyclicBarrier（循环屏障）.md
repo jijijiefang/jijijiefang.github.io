@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "JUC-CyclicBarrier（循环屏障）"
+title:      "23丨JUC-CyclicBarrier（循环屏障）"
 date:       2019-11-19 14:30:54
 author:     "jiefang"
 header-style: text

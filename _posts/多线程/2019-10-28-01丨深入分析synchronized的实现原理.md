@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "深入分析synchronized的实现原理"
+title:      "01丨深入分析synchronized的实现原理"
 date:       2019-10-28 00:00:00
 author:     "jiefang"
 header-style: text
