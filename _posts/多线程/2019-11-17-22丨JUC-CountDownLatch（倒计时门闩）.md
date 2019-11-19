@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "22丨JUC-CountDownLatch"
+title:      "22丨JUC-CountDownLatch（倒计时门闩）"
 date:       2019-11-17 22:04:24
 author:     "jiefang"
 header-style: text
