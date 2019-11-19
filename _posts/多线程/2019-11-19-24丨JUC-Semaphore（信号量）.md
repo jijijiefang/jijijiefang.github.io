@@ -145,7 +145,59 @@ Semaphore.Sync.tryReleaseShared()源码：
         }
     }
 ```
-
+### tryAcquire
+尝试获取许可，返回是否成功，不会加入队列阻塞等待，源码：
+```
+    public boolean tryAcquire() {   
+        //调用非公平获取许可
+        return sync.nonfairTryAcquireShared(1) >= 0;
+    }
+    public boolean tryAcquire(long timeout, TimeUnit unit)
+        throws InterruptedException {
+        //现在获取成功则返回成功，否则在队列中等待指定时间
+        return sync.tryAcquireSharedNanos(1, unit.toNanos(timeout));
+    }
+    public boolean tryAcquire(int permits)
+    public boolean tryAcquire(int permits, long timeout, TimeUnit unit)
+```
+### reducePermits
+减少指定的许可，不会进入队列阻塞等待
+```
+    protected void reducePermits(int reduction) {
+        if (reduction < 0) throw new IllegalArgumentException();
+        sync.reducePermits(reduction);
+    }
+```
+Semaphore.Sync.reducePermits()源码
+```
+        final void reducePermits(int reductions) {
+            for (;;) {
+                int current = getState();
+                int next = current - reductions;
+                if (next > current) // underflow
+                    throw new Error("Permit count underflow");
+                if (compareAndSetState(current, next))
+                    return;
+            }
+        }
+```
+### drainPermits
+将剩下的许可一次性消耗光，并且返回所消耗的许可数量。
+```
+    public int drainPermits() {
+        return sync.drainPermits();
+    }
+```
+Semaphore.Sync.drainPermits()源码
+```
+    final int drainPermits() {
+        for (;;) {
+            int current = getState();
+            if (current == 0 || compareAndSetState(current, 0))
+                return current;
+        }
+    }
+```
 ## 示例
 ```
 public class SemaphoreTest {
