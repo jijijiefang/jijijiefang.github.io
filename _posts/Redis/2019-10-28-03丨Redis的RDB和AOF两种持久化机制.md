@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "03丨Redis的RDB和AOF两种持久化机制"
-date:       2019-10-28 00:00:00
+date:       2019-10-28 02:00:00
 author:     "jiefang"
 header-style: text
 tags:
