@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "08丨ThreadLocal原理"
+title:      "多线程-08丨ThreadLocal原理"
 date:       2019-11-01 02:00:00
 author:     "jiefang"
 header-style: text

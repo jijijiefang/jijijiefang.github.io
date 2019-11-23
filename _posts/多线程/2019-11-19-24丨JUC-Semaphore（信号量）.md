@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "24丨JUC-Semaphore（信号量）"
+title:      "多线程-24丨JUC-Semaphore（信号量）"
 date:       2019-11-19 21:57:02
 author:     "jiefang"
 header-style: text
