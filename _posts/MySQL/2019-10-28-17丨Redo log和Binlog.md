@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      "Redo log和Binlog"
-date:       2019-10-28 00:00:00
+title:      "17丨Redo log和Binlog"
+date:       2019-10-28 00:00:16
 author:     "jiefang"
 header-style: text
 tags:
