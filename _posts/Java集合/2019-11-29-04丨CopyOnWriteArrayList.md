@@ -12,6 +12,7 @@ tags:
 ## 简介
 Java注释：
 >A thread-safe variant of {@link java.util.ArrayList} in which all mutative operations ({@code add}, {@code set}, and so on) are implemented by making a fresh copy of the underlying array.
+
 翻译：
 >ArrayList的线程安全变体，其中所有可变的操作（{@code add}，{@ code set}等）都是通过底层数组的新副本实现的。
 
