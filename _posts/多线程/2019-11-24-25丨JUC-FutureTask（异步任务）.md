@@ -32,7 +32,7 @@ tags:
 >**只要state不处于 NEW 状态，就说明任务已经执行完毕**
 
 ### 队列
-在FutureTask中，队列的实现是一个单向链表，它表示**所有等待任务执行完毕的线程的集合**。</br>
+在FutureTask中，队列的实现是一个单向链表，它表示**所有等待任务执行完毕的线程的集合**。<br>
 FutureTask中所使用的队列的结构如下：
 ![image](https://s2.ax1x.com/2019/11/24/MOoBDA.png)
 
@@ -268,7 +268,7 @@ FutureTask中所使用的队列的结构如下：
     }
 ```
 ### get()
-阻塞获取执行结果，直到获取到或抛异常。</br>
+阻塞获取执行结果，直到获取到或抛异常。<br>
 FutureTask中会涉及到两类线程，一类是执行任务的线程，它只有一个，FutureTask的run方法就由该线程来执行；一类是获取任务执行结果的线程，它可以有多个，并发执行get()获取结果。如果任务还没有执行完，则这些线程就需要进入Treiber栈中挂起，直到任务执行结束，或者等待的线程自身被中断。
 ```
     public V get() throws InterruptedException, ExecutionException {

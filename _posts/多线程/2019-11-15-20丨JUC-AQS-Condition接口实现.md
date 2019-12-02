@@ -15,7 +15,7 @@ Condition与Object.wait和Object.notify的比较：
 
 对比项 | Object监视器方法|Condition
 ---|---|---
-前置条件 | 获取对象的锁|调用Lock.lock()获取锁</br>调用Lock.newCondition()获取Condition对象
+前置条件 | 获取对象的锁|调用Lock.lock()获取锁<br>调用Lock.newCondition()获取Condition对象
 调用方式| 直接调用|直接调用
 等待队列个数|一个|多个
 当前线程释放锁并进入等待状态|支持|支持
