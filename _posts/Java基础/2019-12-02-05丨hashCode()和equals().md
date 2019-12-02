@@ -57,7 +57,7 @@ Java注释：
 翻译：
 >指示其他某个对象是否与此对象“相等”。
 
-### 特性
+### 规范
 
 ```
      * <p>
@@ -90,11 +90,18 @@ Java注释：
 翻译：
 
 {@code equals}方法在非null对象引用上实现等价关系：
-- 相反性：对于任何非空对象x,x.equals(x)应该返回true;
+- 自反性：对于任何非空对象x,x.equals(x)应该返回true;
 - 对称性：对于任何非空对象x和y,当且仅当y.equals(x)返回true，则x.equals(y)返回true;
 - 传递性：对于任何非空对象x、y和z,x.equals(y)返回true,且y.equals(z)返回true，则x.equals(z)返回true;
 - 一致性：对于任何非空对象x和y,如果没有修改{@code equals}方法使用的信息，则多次调用x.equals(y)方法始终返回ture或false;
 - 对于任何非空对象x,x.equals（null）返回false;
+
+### 高质量的equals()
+
+- 使用==运算符检查参数是否为该对象的引用。如果是，返回true。这是一种性能优化，但是如果这种比较可能很昂贵的话，那就值得去做。
+- 使用instanceof运算符来检查参数是否具有正确的类型。 如果不是，则返回false。 通常，正确的类型是equals方法所在的那个类。 有时候，改类实现了一些接口。 如果类实现了一个接口，该接口可以改进 equals约定以允许实现接口的类进行比较，那么使用接口。 集合接口（如Set，List，Map和Map.Entry）具有此特性。
+- 参数转换为正确的类型。因为转换操作在instanceof中已经处理过，所以它肯定会成功。
+- 对于类中的每个“重要”的属性，请检查该参数属性是否与该对象对应的属性相匹配。如果所有这些测试成功，返回true，否则返回false。如果步骤2中的类型是一个接口，那么必须通过接口方法访问参数的属性;如果类型是类，则可以直接访问属性，这取决于属性的访问权限。
 
 ## hashCode()和equals()的联系
 hashCode()方法和equal()方法的作用其实一样，在Java里都是用来对比两个对象是否相等：
@@ -154,4 +161,3 @@ String类里复写了hashCode()和equals()两个方法，所以Map中经常使�
 - 若两个对象hashCode（）返回相同int数，则equals（Object obj）不一定返回true；
 - 若两个对象hashCode（）返回不同int数，则equals（Object obj）一定返回false；
 - 同一对象在执行期间若已经存储在集合中，则不能修改影响hashCode值的相关信息，否则会导致内存泄露问题；
-
