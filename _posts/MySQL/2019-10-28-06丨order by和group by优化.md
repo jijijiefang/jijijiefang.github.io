@@ -15,12 +15,13 @@ tags:
 按照排序原理分，MySQL 排序方式分两种：
 - 通过有序索引直接返回有序数据
 - 通过 Filesort 进行的排序
+
 ### Filesort 是在内存中还是在磁盘中完成排序的？
 
 MySQL 中的 Filesort 并不一定是在磁盘文件中进行排序的，也有可能在内存中排序，内存排序
-还是磁盘排序取决于排序的数据大小和 sort_buffer_size 配置的大小。
-- 如果 “排序的数据大小” < sort_buffer_size: 内存排序
-- 如果 “排序的数据大小” > sort_buffer_size: 磁盘排序
+还是磁盘排序取决于排序的数据大小和 `sort_buffer_size` 配置的大小。
+- 如果 “排序的数据大小” < `sort_buffer_size`: 内存排序
+- 如果 “排序的数据大小” > `sort_buffer_size`: 磁盘排序
 
 ```
 "filesort_summary": {
@@ -44,13 +45,15 @@ Filesort 下的排序模式有三种，具体介绍如下：
 - < sort_key, additional_fields>单路排序：是一次性取出满足条件行的所有字段，然后在sort buffer中进行排序；
 - < sort_key, packed_additional_fields>打包数据排序模式：与单路排序相似，区别是将char 和 varchar 字段存到 sort buffer 中时，更加紧缩。
 
-MySQL 通过比较系统变量max_length_for_sort_data的大小和需要查询的字段总大小来判断使用哪种排序模式。
-- 如果 max_length_for_sort_data 比查询字段的总长度大，那么使用 < sort_key,
+MySQL 通过比较系统变量`max_length_for_sort_data`的大小和需要查询的字段总大小来判断使用哪种排序模式。
+- 如果 `max_length_for_sort_data` 比查询字段的总长度大，那么使用 < sort_key,
 additional_fields >排序模式；
-- 如果 max_length_for_sort_data 比查询字段的总长度小，那么使用 <sort_key, rowid> 排序模式。
+- 如果 `max_length_for_sort_data` 比查询字段的总长度小，那么使用 <sort_key, rowid> 排序模式。
 
  select a,c,d from t1 where a=1000 order by d;
- #### 单路排序的详细过程：
+ 
+#### 单路排序的详细过程：
+ 
 1. 从索引 a 找到第一个满足 a = 1000 条件的主键 id
 2. 根据主键 id 取出整行，**取出 a、c、d 三个字段的值，存入 sort_buffer 中**
 3. 从索引 a 找到下一个满足 a = 1000 条件的主键 id
@@ -59,6 +62,7 @@ additional_fields >排序模式；
 6. 返回结果给客户端
 
 #### 双路排序的详细过程：
+
 1. 从索引a找出第一个满足a=1000的主键id
 2. 根据主键id取出整行，**把排序字段d和主键id这两个字段放到sort_buffer中**
 3. 从索引 a 取下一个满足 a = 1000 记录的主键 id
@@ -84,9 +88,9 @@ additional_fields >排序模式；
 
 ###  3、修改参数
 两个跟排序有关的参数 ：**max_length_for_sort_data**、**sort_buffer_size**。
-- max_length_for_sort_data：如果觉得排序效率比较低，可以适当加大
+- `max_length_for_sort_data`：如果觉得排序效率比较低，可以适当加大
 max_length_for_sort_data的值，让优化器优先选择全字段排序。当然不能设置过大，可能会导致 CPU 利用率过低或者磁盘 I/O 过高；
-- sort_buffer_size：适当加大sort_buffer_size的值，尽可能让排序在内存中完成。但不能设置过大，可能导致数据库服务器 SWAP。
+- `sort_buffer_size`：适当加大sort_buffer_size的值，尽可能让排序在内存中完成。但不能设置过大，可能导致数据库服务器 SWAP。
 
 ### 4、无法利用索引排序的情况
 #### 使用范围查询再排序
