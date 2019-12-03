@@ -48,10 +48,13 @@ Filesort 下的排序模式有三种，具体介绍如下：
 MySQL 通过比较系统变量`max_length_for_sort_data`的大小和需要查询的字段总大小来判断使用哪种排序模式。
 - 如果 `max_length_for_sort_data` 比查询字段的总长度大，那么使用 < sort_key,
 additional_fields >排序模式；
-- 如果 `max_length_for_sort_data` 比查询字段的总长度小，那么使用 <sort_key, rowid> 排序模式。
+- 如果 `max_length_for_sort_data` 比查询字段的总长度小，那么使用 <sort_key,
+  rowid> 排序模式。 
 
+```
  select a,c,d from t1 where a=1000 order by d;
- 
+```
+
 #### 单路排序的详细过程：
  
 1. 从索引 a 找到第一个满足 a = 1000 条件的主键 id
