@@ -1,13 +1,13 @@
 ---
 layout:     post
-title:      "Java基础-05丨hashCode()和equals()"
+title:      "Java基础-05丨Object.hashCode()和Object.equals()"
 date:       2019-12-02 14:23:16
 author:     "jiefang"
 header-style: text
 tags:
     - Java基础
 ---
-# hashCode()和equals()
+# 05丨Object.hashCode()和Object.equals()
 
 ## hashCode()
 ### 简介
