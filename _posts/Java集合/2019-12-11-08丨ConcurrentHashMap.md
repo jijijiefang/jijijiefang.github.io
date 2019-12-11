@@ -89,7 +89,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
     - 负数代表正在进行初始化或扩容操作
     - -1代表正在初始化
     - -N 表示有N-1个线程正在进行扩容操作
-    - 正数或0代表hash表还没有被初始化，这个数值表示初始化或下一次进行扩容的大小
+    - 正数或0代表hash表还没有被初始化，这个数值表示初始化或下一次进行扩容的大小(扩容门槛)
 
 
 ### 新增
@@ -490,5 +490,214 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
 
 ![image](https://s2.ax1x.com/2019/12/11/QsAL40.md.png)
 
+#### addCount(long x, int check)
+每次添加元素后，元素数量加1，并判断是否达到扩容门槛，达到了则进行扩容或协助扩容。
+```
+    private final void addCount(long x, int check) {
+        CounterCell[] as; long b, s;
+        // 把数组的大小存储根据不同的线程存储到不同的段上（也是分段锁的思想）
+        // 并且有一个baseCount，优先更新baseCount，如果失败了再更新不同线程对应的段
+        // 这样可以保证尽量小的减少冲突
+        // 先尝试把数量加到baseCount上，如果失败再加到分段的CounterCell上
+        //计数数组不为空或baseCount+1失败
+        if ((as = counterCells) != null ||
+            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
+            CounterCell a; long v; int m;
+            boolean uncontended = true;
+            // 如果as为空
+            // 或者长度为0
+            // 或者当前线程所在的段为null
+            // 或者在当前线程的段上加数失败
+            if (as == null || (m = as.length - 1) < 0 ||
+                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
+                !(uncontended =
+                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+                // 不同线程对应不同的段都更新失败了
+                // 已经发生冲突了，那么就对counterCells进行扩容
+                // 以减少多个线程hash到同一个段的概率
+                fullAddCount(x, uncontended);
+                return;
+            }
+            if (check <= 1)
+                return;
+            s = sumCount();
+        }
+        if (check >= 0) {
+            Node<K,V>[] tab, nt; int n, sc;
+            //计算出的总数s>=扩容阈值且数组不为空且数组长度小于最大容量
+            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
+                   (n = tab.length) < MAXIMUM_CAPACITY) {
+                int rs = resizeStamp(n);
+                //正在扩容或迁移
+                if (sc < 0) {
+                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                        transferIndex <= 0)
+                        //扩容已经完成
+                        break;
+                    //扩容正在进行，帮助转移
+                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                        transfer(tab, nt);
+                }//当前线程来进行扩容操作
+                else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                             (rs << RESIZE_STAMP_SHIFT) + 2))
+                    transfer(tab, null);
+                //计算总数
+                s = sumCount();
+            }
+        }
+    }
+```
+1. 元素个数的存储方式类似于LongAdder类，存储在不同的段上，减少不同线程同时更新size时的冲突；
+2. 计算元素个数时把这些段的值及baseCount相加算出总的元素个数；
+3. 正常情况下sizeCtl存储着扩容门槛，扩容门槛为容量的0.75倍；
+4. 扩容时sizeCtl高位存储扩容邮戳(resizeStamp)，低位存储扩容线程数加1（1+nThreads）；
+5. 其它线程添加元素后如果发现存在扩容，也会加入的扩容行列中来；
+
+### 删除
+
+#### remove(Object key)
+根据key删除元素。
+```
+    public V remove(Object key) {
+        return replaceNode(key, null, null);
+    }
+```
+#### replaceNode(Object key, V value, Object cv)
+
+```
+    final V replaceNode(Object key, V value, Object cv) {
+        int hash = spread(key.hashCode());
+        for (Node<K,V>[] tab = table;;) {
+            Node<K,V> f; int n, i, fh;
+            //数组为空或length等于0或计算后hash数组下标元素为null
+            if (tab == null || (n = tab.length) == 0 ||
+                (f = tabAt(tab, i = (n - 1) & hash)) == null)
+                break;
+            //帮助迁移节点
+            else if ((fh = f.hash) == MOVED)
+                tab = helpTransfer(tab, f);
+            else {
+                V oldVal = null;
+                boolean validated = false;
+                synchronized (f) {
+                    //再次验证当前桶第一个元素是否被修改过
+                    if (tabAt(tab, i) == f) {
+                        //链表
+                        if (fh >= 0) {
+                            validated = true;
+                            for (Node<K,V> e = f, pred = null;;) {
+                                K ek;
+                                if (e.hash == hash &&
+                                    ((ek = e.key) == key ||
+                                     (ek != null && key.equals(ek)))) {
+                                    V ev = e.val;
+                                    if (cv == null || cv == ev ||
+                                        (ev != null && cv.equals(ev))) {
+                                        oldVal = ev;
+                                        if (value != null)
+                                            e.val = value;
+                                        //如果前置节点不为空，删除当前节点
+                                        else if (pred != null)
+                                            pred.next = e.next;
+                                        //前置节点为空，当前节点下一节点设置数组i位置
+                                        else
+                                            setTabAt(tab, i, e.next);
+                                    }
+                                    break;
+                                }
+                                pred = e;
+                                //链表尾节点
+                                if ((e = e.next) == null)
+                                    break;
+                            }
+                        }//树节点
+                        else if (f instanceof TreeBin) {
+                            validated = true;
+                            TreeBin<K,V> t = (TreeBin<K,V>)f;
+                            TreeNode<K,V> r, p;
+                            if ((r = t.root) != null &&
+                                (p = r.findTreeNode(hash, key, null)) != null) {
+                                V pv = p.val;
+                                if (cv == null || cv == pv ||
+                                    (pv != null && cv.equals(pv))) {
+                                    oldVal = pv;
+                                    //替换旧值
+                                    if (value != null)
+                                        p.val = value;
+                                    //删除节点
+                                    else if (t.removeTreeNode(p))
+                                        //树转化为链表
+                                        setTabAt(tab, i, untreeify(t.first));
+                                }
+                            }
+                        }
+                    }
+                }
+                if (validated) {
+                    if (oldVal != null) {
+                        //修改元素个数
+                        if (value == null)
+                            addCount(-1L, -1);
+                        return oldVal;
+                    }
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+```
+1. 计算hash值；
+2. 计算后的数组下标元素不存在，返回；
+3. 如果正在扩容，帮助转移元素；
+4. 对数组下标元素加锁，如果是链表遍历链表查找元素，找到后删除；
+5. 如果是树节点，则遍历树查找元素，找到后删除；
+6. 如果是树节点，删除后树太小，树转化为链表；
+7. 如果删除了元素，修改元素个数减1，返回旧值；
+8. 没有删除元素，返回null；
+
+### 获取
+
+#### get(Object key)
+根据key获取元素value
+```
+    public V get(Object key) {
+        Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
+        //计算数组下标
+        int h = spread(key.hashCode());
+        if ((tab = table) != null && (n = tab.length) > 0 &&
+            (e = tabAt(tab, (n - 1) & h)) != null) {
+            if ((eh = e.hash) == h) {
+                //找到元素返回value
+                if ((ek = e.key) == key || (ek != null && key.equals(ek)))
+                    return e.val;
+            }// hash小于0，说明是树或者正在扩容
+            // 使用find寻找元素，find的寻找方式依据Node的不同子类有不同的实现方式
+            else if (eh < 0)
+                return (p = e.find(h, key)) != null ? p.val : null;
+            //通过链表方式遍历寻找
+            while ((e = e.next) != null) {
+                if (e.hash == h &&
+                    ((ek = e.key) == key || (ek != null && key.equals(ek))))
+                    return e.val;
+            }
+        }
+        return null;
+    }
+```
 
 ## 总结
+1. ConcurrentHashMap是HashMap的线程安全版本；
+2. ConcurrentHashMap采用（数组 + 链表 + 红黑树）的结构存储元素；
+3. ConcurrentHashMap相比于同样线程安全的HashTable，效率要高很多；
+4. ConcurrentHashMap采用的锁有 synchronized，CAS，自旋锁，分段锁，volatile等；
+5. ConcurrentHashMap中没有threshold和loadFactor这两个字段，而是采用sizeCtl来控制；
+6. 更新操作时如果正在进行扩容，当前线程协助扩容；
+7. 更新操作会采用synchronized锁住当前桶的第一个元素，这是分段锁的思想；
+8. 整个扩容过程都是通过CAS控制sizeCtl这个字段来进行的；
+9. 迁移完元素的桶会放置一个ForwardingNode节点，以标识该桶迁移完毕；
+10. 元素个数的存储也是采用的分段思想，类似于LongAdder的实现；
+11. 获取元素个数是把所有的段（包括baseCount和CounterCell）相加起来得到的；
+12. 查询操作是不会加锁的，所以ConcurrentHashMap不是强一致性的；
+13. ConcurrentHashMap中不能存储key或value为null的元素；
