@@ -64,4 +64,3 @@ HashSet的构造方法，使用LinkedHashMap实现，用于LinkedHashSet。
 1. LinkedHashSet的底层使用LinkedHashMap存储元素；
 2. LinkedHashSet是有序的，它是按照插入的顺序排序的；
 3. LinkedHashSet不支持按访问顺序对元素排序的（因为accessOrder是false）；
-c
