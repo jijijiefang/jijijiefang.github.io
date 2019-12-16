@@ -17,8 +17,7 @@ tags:
     <li>It is thread-safe.
     <li>Mutative operations ({@code add}, {@code set}, {@code remove}, etc.)are expensive since they usually entail copying the entire underlying array.
     <li>Iterators do not support the mutative {@code remove} operation.
-    <li>Traversal via iterators is fast and cannot encounter interference from other threads. Iterators rely on unchanging snapshots of the array at the time the iterators were constructed.
-</ul>
+    <li>Traversal via iterators is fast and cannot encounter interference from other threads. Iterators rely on unchanging snapshots of the array at the time the iterators were constructed.</ul>
 
 翻译
 > 内部使用CopyOnWriteArrayList进行所有操作的Set。因此，它共享相同的基本属性：<ul>
