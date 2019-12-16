@@ -7,6 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
+    - 多线程
 ---
 # LinkedBlockingQueue
 
