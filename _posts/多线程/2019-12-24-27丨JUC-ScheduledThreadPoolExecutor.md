@@ -373,6 +373,35 @@ private class ScheduledFutureTask<V>
         return schedule(Executors.callable(task, result), 0, NANOSECONDS);
     }    
 ```
+## 示例
+```
+public class ScheduledThreadPoolExecutorTest {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
+        System.out.println("currentTimeMillis: " + System.currentTimeMillis());
+
+        //执行一个无返回值的任务，5秒后执行，只执行一次
+        executor.schedule(()->{
+            System.out.println("currentTimeMillis: " + System.currentTimeMillis());
+        },5, TimeUnit.SECONDS);
+        //执行一个有返回值的任务，5秒后执行，只执行一次
+        ScheduledFuture<String> future = executor.schedule(()->{
+            System.out.println("currentTimeMillis: " + System.currentTimeMillis());
+            return "returnValue";
+        },5,TimeUnit.SECONDS);
+
+        System.out.println(future.get() + System.currentTimeMillis());
+        //固定频率执行任务，1秒后执行，每2秒执行一次
+        executor.scheduleAtFixedRate(()->{
+            System.out.println("固定频率: " + System.currentTimeMillis());
+        },1,2,TimeUnit.SECONDS);
+        //固定延时执行任务，1秒后执行，每2秒执行一次
+        executor.scheduleWithFixedDelay(()->{
+            System.out.println("固定延时: " + System.currentTimeMillis());
+        },1,2,TimeUnit.SECONDS);
+    }
+}
+```
 
 ## 总结
 
