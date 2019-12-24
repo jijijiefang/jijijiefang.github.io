@@ -179,3 +179,19 @@ ReentrantLock与synchronized有着相同的功能和内存语义，但是还是�
 - ReentrantLock**支持中断处理**。
 - JDK5的早期版本中，ReentrantLock的性能远远好于synchronized，但是从JDK6开始，JDK在synchronized上做了大量优化，使得两者的性能差距不大。
 
+
+功能 | ReentrantLock|synchronized
+---|---|---
+可重入|支持|支持
+非公平|支持（默认）|支持
+加锁/解锁方式|需要手动加锁、解锁，一般使用try..finally..保证锁能够释放|手动加锁，无需刻意解锁
+按key锁|不支持，比如按用户id加锁	|支持，synchronized加锁时需要传入一个对象
+公平锁|支持，new ReentrantLock(true)|不支持
+中断|支持，lockInterruptibly()|不支持
+尝试加锁|支持，tryLock()|不支持
+超时锁|支持，tryLock(timeout, unit)|不支持
+获取当前线程获取锁的次数|支持，getHoldCount()|不支持
+获取等待的线程|支持，getWaitingThreads()|不支持
+检测是否被当前线程占有|支持，isHeldByCurrentThread()|不支持
+检测是否被任意线程占有|支持，isLocked()|不支持
+条件锁|可支持多个条件，condition.await()，condition.signal()，condition.signalAll()|只支持一个，obj.wait()，obj.notify()，obj.notifyAll()
