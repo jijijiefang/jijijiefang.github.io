@@ -22,7 +22,7 @@ tags:
 Java 中每一个对象都可以作为锁，这是 synchronized 实现同步的基础：
 
 - 普通同步方法，锁是当前实例对象
-- 静态同步方法，锁是当前类的 class 对象
+- 静态同步方法，锁是当前类的 Class 对象
 - 同步方法块，锁是括号里面的对象
 
 - 1）同步代码块是使用 monitorenter 和 monitorexit 指令实现的；
