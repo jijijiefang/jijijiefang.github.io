@@ -42,7 +42,7 @@ Mark Word 用于存储对象自身的运行时数据，主要包含对象的哈�
 
  ![64位Mark Word](https://s2.ax1x.com/2019/10/18/KZJhD0.md.png)
  
- ## Monitor
+## Monitor
  什么是Monitor？
 - 1.Monitor是一种用来实现同步的工具
 - 2.与每个java对象相关联，即每个java对象都有一个Monitor与之对应
