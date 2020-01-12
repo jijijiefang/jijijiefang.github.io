@@ -24,6 +24,7 @@ redis中bit映射被限制在512MB之内，所以最大是2^32位。建议每个
 
 ### getbit key offset
 - 获取位图指定索引的值
+
 ```
 127.0.0.1:6379> set hello big
 OK
@@ -37,6 +38,7 @@ OK
 ![image](https://s2.ax1x.com/2020/01/11/lIJgL8.md.png)
 ### setbit key offset value
 - 给位图指定索引设置值，返回该索引位置的原始值
+
 ```
 127.0.0.1:6379> set hello big
 OK
@@ -59,6 +61,7 @@ OK
 ### bitcount key [start end]
 - 获取位图指定范围（start到end，单位为字节，如果不指定就是获取全部）位值为1的个数。
 - 范围必须是 8 的倍数。
+
 ```
 127.0.0.1:6379> set hello big
 OK
@@ -84,6 +87,7 @@ OK
 ```
 ### bitop and|or|not|xor destkey key [key...]
 - 做多个bitmap的and（交集）、or（并集）、not（非）、xor（异或）操作并将结果保存到destkey中。
+
 ```
 127.0.0.1:6379> set hello big
 OK
@@ -108,6 +112,7 @@ OK
 ```
 ### bitpos key targetBit [start] [end] （起始版本：2.8.7）
 - 计算位图指定范围（start到end，单位为字节，如果不指定就是获取全部）第一个偏移量对应的值等于targetBit的位置。
+
 ```
 127.0.0.1:6379> set hello big
 OK
