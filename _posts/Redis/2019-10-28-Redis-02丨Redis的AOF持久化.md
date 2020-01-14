@@ -16,7 +16,7 @@ tags:
 ## 1、AOF持久化的配置
 AOF持久化，默认是关闭的，默认是打开RDB持久化
 
-appendonly yes，可以打开AOF持久化机制，在生产环境里面，一般来说AOF都是要打开的，除非你说随便丢个几分钟的数据也无所谓
+`appendonly yes`，可以打开AOF持久化机制，在生产环境里面，一般来说AOF都是要打开的，除非你说随便丢个几分钟的数据也无所谓
 
 打开AOF持久化机制之后，redis每次接收到一条写命令，就会写入日志文件中，当然是先写入os cache的，然后每隔一定时间再fsync一下
 
@@ -44,8 +44,8 @@ redis 2.4之前，还需要手动，开发一些脚本，crontab，通过BGREWRI
 
 在redis.conf中，可以配置rewrite策略
 
-auto-aof-rewrite-percentage 100
-auto-aof-rewrite-min-size 64mb
+`auto-aof-rewrite-percentage 100`
+`auto-aof-rewrite-min-size 64mb`
 
 比如说上一次AOF rewrite之后，是128mb
 
@@ -63,7 +63,7 @@ auto-aof-rewrite-min-size 64mb
 
 如果redis在append数据到AOF文件时，机器宕机了，可能会导致AOF文件破损
 
-用redis-check-aof --fix命令来修复破损的AOF文件
+用`redis-check-aof --fix`命令来修复破损的AOF文件
 
 ## 4、AOF和RDB同时工作
 
