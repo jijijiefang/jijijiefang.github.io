@@ -39,7 +39,7 @@ RDB持久化是将当前进程中的数据生成快照保存到硬盘(因此也�
 除了`save m n `以外，还有一些其他情况会触发bgsave：
 - 在主从复制场景下，如果从节点执行全量复制操作，则主节点会执行`bgsave`命令，并将rdb文件发送给从节点
 - 执行`shutdown命令`时，自动执行rdb持久化
-- 执行`debug reload命令`重新加载Redis时，也会自动触发`bgsave`操作。
+- 执行`debug reload命令`重新加载Redis时，也会自动触发`save`操作。
 
 ### 执行流程
 ![image](https://s2.ax1x.com/2020/01/14/lLAUL4.png)
