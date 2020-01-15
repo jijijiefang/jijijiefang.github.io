@@ -95,3 +95,29 @@ AOF和RDB文件都可以用于服务器重启时的数据恢复。
 对于错误格式的AOF文件，先进行备份，然后采用redis-check-aof--fix命令进行修复。
 
 AOF文件可能存在结尾不完整的情况，比如机器突然掉电导致AOF尾部文件命令写入不全。Redis提供了`aof-load-truncated`配置来兼容这种情况，默认开启。加载AOF时，当遇到此问题时会忽略并继续启动。
+
+## AOF追加阻塞
+当开启AOF持久化时，常用的同步硬盘的策略是`everysec`，用于平衡性 能和数据安全性。对于这种方式，Redis使用另一条线程每秒执行`fsync`同步 硬盘。当系统硬盘资源繁忙时，会造成Redis主线程阻塞。
+
+![image](https://s2.ax1x.com/2020/01/15/lXhnG6.png)
+1. 主线程负责写入AOF缓冲区；
+2. AOF线程负责每秒执行一次同步磁盘操作，并记录最近一次同步时间；
+3. 主线程负责对比上次AOF同步时间：
+    - 如果距上次同步成功时间在2秒内，主线程直接返回；
+    - 如果距上次同步成功时间超过2秒，主线程将会阻塞，直到同步操作完成；
+
+AOF阻塞问题：
+- everysec配置最多可能丢失2秒数据，不是1秒；
+- 如果系统fsync缓慢，将会导致Redis主线程阻塞影响效率；
+
+AOF阻塞问题定位：
+- 发生AOF阻塞时，Redis输出如下日志，用于记录AOF fsync阻塞导致 拖慢Redis服务的行为;
+    >
+    ```
+    Asynchronous AOF fsync is taking too long (disk is busy).
+    Writing the AOF buffer without waiting for fsync to complete, this may slow down Redis
+    ```
+- 每当发生AOF追加阻塞事件发生时，在`info Persistence`统计中， `aof_delayed_fsync`指标会累加，查看这个指标方便定位AOF阻塞问题;
+- AOF同步最多允许2秒的延迟，当延迟发生时说明硬盘存在高负载问 题，可以通过监控工具如iotop，定位消耗硬盘IO资源的进程;
+
+优化AOF追加阻塞问题主要是优化系统硬盘负载。
