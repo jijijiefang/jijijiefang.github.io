@@ -8,65 +8,90 @@ tags:
     - Redis
 ---
 # Redis的AOF持久化
-- 1、AOF持久化的配置
-- 2、AOF rewrite
-- 3、AOF破损文件的修复
-- 4、AOF和RDB同时工作
+AOF（`append only file`）持久化：以独立日志的方式记录每次写命令，
+重启时再重新执行AOF文件中的命令达到恢复数据的目的。AOF的主要作用
+是解决了数据持久化的实时性，目前已经是Redis持久化的主流方式。
 
-## 1、AOF持久化的配置
-AOF持久化，默认是关闭的，默认是打开RDB持久化
+## 使用AOF
+开启AOF功能需要设置配置：`appendonly yes`，默认不开启。AOF文件名
+通过`appendfilename`配置设置，默认文件名是`appendonly.aof`。保存路径同
+RDB持久化方式一致，通过dir配置指定。
+## 流程
+![](https://www.showdoc.cc/server/api/common/visitfile/sign/f5ae585bcff7fc97a3cf4a31aeebd2d7?showdoc=.jpg)
+1. 所有的写入命令会追加到aof_buf（缓冲区）中；
+2. AOF缓冲区根据对应的策略向硬盘做同步操作；
+3. 随着AOF文件越来越大，需要定期对AOF文件进行重写，达到压缩
+的目的；
+4. 当Redis服务器重启时，可以加载AOF文件进行数据恢复；
 
-`appendonly yes`，可以打开AOF持久化机制，在生产环境里面，一般来说AOF都是要打开的，除非你说随便丢个几分钟的数据也无所谓
+### 命令写入
+AOF命令写入的内容直接是文本协议格式。
 
-打开AOF持久化机制之后，redis每次接收到一条写命令，就会写入日志文件中，当然是先写入os cache的，然后每隔一定时间再fsync一下
+AOF的两个疑惑：
+- AOF为什么直接采用文本协议格式？
+	- 文本协议具有很好的兼容性。
+	- 开启AOF后，所有写入命令都包含追加操作，直接采用协议格式，避免了二次处理开销。
+	- 文本协议具有可读性，方便直接修改和处理。
+- AOF为什么把命令追加到aof_buf中？
+>Redis使用单线程响应命令，如果每次写AOF文件命令都直接追加到硬盘，那么性能完全取决于当前硬盘负
+载。先写入缓冲区aof_buf中，还有另一个好处，Redis可以提供多种缓冲区同步硬盘的策略，在性能和安全性方面做出平衡。
 
-而且即使AOF和RDB都开启了，redis重启的时候，也是优先通过AOF进行数据恢复的，因为aof数据比较完整
+### 文件同步
+Redis提供了多种AOF缓冲区同步文件策略，由参数appendfsync控制。
+- `always`:命令写入aof_buf后调用系统fsync操作同步到AOF文件中，fsync完成后线程返回；
+- `everysec`:命令写入aof_buf后调用系统write操作，write完成后线程返回。fsync同步文件操作由专门线程每秒调用一次；
+- `no`:命令写入aof_buf后调用系统write操作，不对AOF文件做fsync操作，同步硬盘操作由操作系统负责，通常最长同步周期为30秒；
 
-可以配置AOF的fsync策略，有三种策略可以选择，一种是每次写入一条数据就执行一次fsync; 一种是每隔一秒执行一次fsync; 一种是不主动执行fsync
+- `write`操作会触发延迟写（`delayed write`）机制。Linux在内核提供页缓冲区用来提高硬盘IO性能。`write`操作在写入系统缓冲区后直接返回。同步硬盘操作依赖于系统调度机制，例如：缓冲区页空间写满或达到特定时间周期。同步文件之前，如果此时系统故障宕机，缓冲区内数据将丢失。
 
-- always: 每次写入一条数据，立即将这个数据对应的写日志fsync到磁盘上去，性能非常非常差，吞吐量很低; 确保说redis里的数据一条都不丢，那就只能这样了
+- `fsync`针对单个文件操作（比如AOF文件），做强制硬盘同步，`fsync`将阻塞直到写入硬盘完成后返回，保证了数据持久化。
 
-- everysec: 每秒将os cache中的数据fsync到磁盘，这个最常用的，生产环境一般都这么配置，性能很高，QPS还是可以上万的
+### 重写机制
+随着命令不断写入AOF，文件会越来越大，为了解决这个问题，Redis引入AOF重写机制压缩文件体积。AOF文件重写是把Redis进程内的数据转化为写命令同步到新AOF文件的过程。
+重写后的AOF文件为什么可以变小？有如下原因：
+- 进程内已经超时的数据不再写入文件。
+- 旧的AOF文件含有无效命令，如del key1、hdel key2、srem keys、set a111、set a222等。重写使用进程内数据直接生成，这样新的AOF文件只保留最终数据的写入命令。
+- 多条写命令可以合并为一个，如：lpush list a、lpush list b、lpush list c可以转化为：lpush list a b c。为了防止单条命令过大造成客户端缓冲区溢出，对于list、set、hash、zset等类型操作，以64个元素为界拆分为多条。
 
-- no: 仅仅redis负责将数据写入os cache就撒手不管了，然后后面os自己会时不时有自己的策略将数据刷入磁盘，不可控了
+AOF重写降低了文件占用空间，除此之外，另一个目的是：更小的AOF文件可以更快地被Redis加载。
+AOF重写过程可以手动触发和自动触发：
+- 手动触发：直接调用`bgrewriteaof`命令。
+- 自动触发：根据`auto-aof-rewrite-min-size`和`auto-aof-rewrite-percentage`参数确定自动触发时机。
+	- `auto-aof-rewrite-min-size`：表示运行AOF重写时文件最小体积，默认为64MB。
+	- `auto-aof-rewrite-percentage`：代表当前AOF文件空间（`aof_current_size`）和上一次重写后AOF文件空间（`aof_base_size`）的比值。
+	- 自动触发时机=`aof_current_size>auto-aof-rewrite-minsize &&（aof_current_size-aof_base_size）/aof_base_size>=auto-aof-rewritepercentage`
 
-## 2、AOF rewrite
+### AOF重写流程
 
-redis中的数据其实有限的，很多数据可能会自动过期，可能会被用户删除，可能会被redis用缓存清除的算法清理掉
+![rewrite](https://www.showdoc.cc/server/api/common/visitfile/sign/6ad2ca39192c247c0e5b45fd2f363653?showdoc=.jpg "rewrite")
 
-redis中的数据会不断淘汰掉旧的，就一部分常用的数据会被自动保留在redis内存中
+- 1、执行AOF重写请求。
+	>1. 如果当前进程正在执行AOF重写，请求不执行并返回如下响应：
+	```
+	ERR Background append only file rewriting already in progress
+	```
+	>2. 如果当前进程正在执行bgsave操作，重写命令延迟到bgsave完成之后再执行，返回如下响应：
+	```
+	Background append only file rewriting scheduled
+	```
+- 2、父进程执行fork创建子进程，开销等同于bgsave过程。
+- 3.1、主进程fork操作完成后，继续响应其他命令。所有修改命令依然写入AOF缓冲区并根据appendfsync策略同步到硬盘，保证原有AOF机制正确性。
+- 3.2、由于fork操作运用写时复制技术，子进程只能共享fork操作时的内存数据。由于父进程依然响应命令，Redis使用“AOF重写缓冲区”保存这部分新数据，防止新AOF文件生成期间丢失这部分数据。
+- 4、子进程根据内存快照，按照命令合并规则写入到新的AOF文件。每次批量写入硬盘数据量由配置aof-rewrite-incremental-fsync控制，默认为32MB，防止单次刷盘数据过多造成硬盘阻塞。
+- 5.1、新AOF文件写入完成后，子进程发送信号给父进程，父进程更新统计信息。
+- 5.2、父进程把AOF重写缓冲区的数据写入到新的AOF文件。
+- 5.3、使用新AOF文件替换老文件，完成AOF重写。
 
-所以可能很多之前的已经被清理掉的数据，对应的写日志还停留在AOF中，AOF日志文件就一个，会不断的膨胀，到很大很大
+### 重启加载
+AOF和RDB文件都可以用于服务器重启时的数据恢复。
 
-所以AOF会自动在后台每隔一定时间做rewrite操作，比如日志里已经存放了针对100w数据的写日志了; redis内存只剩下10万; 基于内存中当前的10万数据构建一套最新的日志，到AOF中; 覆盖之前的老日志; 确保AOF日志文件不会过大，保持跟redis内存数据量一致
+![](https://www.showdoc.cc/server/api/common/visitfile/sign/a48731a4b7fea4ee2a3dc6a60b32f9d7?showdoc=.jpg)
+1. AOF持久化开启且存在AOF文件时，优先加载AOF文件；
+2. AOF关闭或者AOF文件不存在时，加载RDB文件；
+3. 加载AOF/RDB文件成功后，Redis启动成功;
+4. AOF/RDB文件存在错误时，Redis启动失败并打印错误信;
 
-redis 2.4之前，还需要手动，开发一些脚本，crontab，通过BGREWRITEAOF命令去执行AOF rewrite，但是redis 2.4之后，会自动进行rewrite操作
+### 文件校验
+对于错误格式的AOF文件，先进行备份，然后采用redis-check-aof--fix命令进行修复。
 
-在redis.conf中，可以配置rewrite策略
-
-`auto-aof-rewrite-percentage 100`
-`auto-aof-rewrite-min-size 64mb`
-
-比如说上一次AOF rewrite之后，是128mb
-
-然后就会接着128mb继续写AOF的日志，如果发现增长的比例，超过了之前的100%，256mb，就可能会去触发一次rewrite
-
-但是此时还要去跟min-size，64mb去比较，256mb > 64mb，才会去触发rewrite
-
-- （1）redis fork一个子进程
-- （2）子进程基于当前内存中的数据，构建日志，开始往一个新的临时的AOF文件中写入日志
-- （3）redis主进程，接收到client新的写操作之后，在内存中写入日志，同时新的日志也继续写入旧的AOF文件
-- （4）子进程写完新的日志文件之后，redis主进程将内存中的新日志再次追加到新的AOF文件中
-- （5）用新的日志文件替换掉旧的日志文件
-
-## 3、AOF破损文件的修复
-
-如果redis在append数据到AOF文件时，机器宕机了，可能会导致AOF文件破损
-
-用`redis-check-aof --fix`命令来修复破损的AOF文件
-
-## 4、AOF和RDB同时工作
-
-- （1）如果RDB在执行snapshotting操作，那么redis不会执行AOF rewrite; 如果redis再执行AOF rewrite，那么就不会执行RDB snapshotting
-- （2）如果RDB在执行snapshotting，此时用户执行BGREWRITEAOF命令，那么等RDB快照生成之后，才会去执行AOF rewrite
-- （3）同时有RDB snapshot文件和AOF日志文件，那么redis重启的时候，会优先使用AOF进行数据恢复，因为其中的日志更完整
+AOF文件可能存在结尾不完整的情况，比如机器突然掉电导致AOF尾部文件命令写入不全。Redis提供了`aof-load-truncated`配置来兼容这种情况，默认开启。加载AOF时，当遇到此问题时会忽略并继续启动。
