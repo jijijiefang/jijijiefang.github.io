@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "15丨Redis的Sentinel(哨兵)机制"
+title:      "Redis-15丨Redis的Sentinel(哨兵)机制"
 date:       2020-01-17 23:49:41
 author:     "jiefang"
 header-style: text

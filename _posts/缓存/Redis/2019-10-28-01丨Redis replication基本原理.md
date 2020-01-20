@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "01丨Redis replication基本原理"
+title:      "Redis-01丨Redis replication基本原理"
 date:       2019-10-28 00:00:00
 author:     "jiefang"
 header-style: text

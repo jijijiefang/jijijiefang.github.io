@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "02丨Redis的AOF持久化"
+title:      "Redis-02丨Redis的AOF持久化"
 date:       2019-10-28 01:00:00
 author:     "jiefang"
 header-style: text
