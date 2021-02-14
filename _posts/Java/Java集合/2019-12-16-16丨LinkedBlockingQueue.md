@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # LinkedBlockingQueue
 
@@ -18,7 +18,7 @@ This queue orders elements FIFO (first-in-first-out).
 The <em>head</em> of the queue is that element that has been on the
 queue the longest time.
 The <em>tail</em> of the queue is that element that has been on the queue the shortest time. New elements are inserted at the tail of the queue, and the queue retrieval operations obtain elements at the head of the queue.Linked queues typically have higher throughput than array-based queues but less predictable performance in most concurrent applications.
- 
+
 翻译
 > 可选地具有有界阻塞队列基于链接节点。 这个队列的命令元素FIFO（先入先出）。 队列的头是元素一直在队列中时间最长。 队列的尾部是该元素已经在队列中的时间最短。 新元素插入到队列的尾部，并且队列检索操作获取在队列的头部元素。 链接队列通常比基于阵列的队列，但在大多数并发应用程序少可预测的性能更高的吞吐量。
 
@@ -32,7 +32,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 
 ### 属性
 
-```
+```java
     //容量
     private final int capacity;
     //元素数量
@@ -55,7 +55,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 
 ### 内部类
 单链表结构
-```
+```java
     static class Node<E> {
         E item;
         Node<E> next;
@@ -64,7 +64,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ```
 ### 构造方法
 
-```
+```java
     //无参构造方法
     public LinkedBlockingQueue() {
         //使用最大int数作为容量
@@ -100,7 +100,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ### 入队
 #### add(E e)
 添加元素成功返回true,队列满抛异常。
-```
+```java
     //AbstractQueue.add
     public boolean add(E e) {
         if (offer(e))
@@ -111,7 +111,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ```
 #### offer(E e)
 添加元素，队列满，返回false。
-```
+```java
     public boolean offer(E e) {
         //非空判断
         if (e == null) throw new NullPointerException();
@@ -147,7 +147,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ```
 #### put(E e)
 添加元素，队列满，阻塞直到入队或被中断。
-```
+```java
     public void put(E e) throws InterruptedException {
         //非空判断
         if (e == null) throw new NullPointerException();
@@ -180,7 +180,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ```
 #### offer(E e, long timeout, TimeUnit unit)
 
-```
+```java
     public boolean offer(E e, long timeout, TimeUnit unit)
         throws InterruptedException {
         //非空校验
@@ -216,7 +216,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 
 #### enqueue(Node<E> node)
 入队操作
-```
+```java
     private void enqueue(Node<E> node) {
         last = last.next = node;
     }
@@ -224,7 +224,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 
 #### signalNotEmpty()
 唤醒等待线程。
-```
+```java
     private void signalNotEmpty() {
         final ReentrantLock takeLock = this.takeLock;
         takeLock.lock();
@@ -239,7 +239,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 
 #### remove()
 队列移除元素，移除成功返回true，否则抛异常。
-```
+```java
     public E remove() {
         E x = poll();
         if (x != null)
@@ -250,7 +250,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ```
 #### poll()
 出队，如果队列为空返回null，否则返回出队元素。
-```
+```java
     public E poll() {
         final AtomicInteger count = this.count;
         //队列为空，返回null
@@ -282,7 +282,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ```
 #### take()
 出队，如果队列为空，阻塞，直到队列添加元素。
-```
+```java
     public E take() throws InterruptedException {
         E x;
         int c = -1;
@@ -314,7 +314,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
 ```
 #### poll(long timeout, TimeUnit unit)
 出队，如果队列为空，阻塞timeout纳秒，直到超时返回null。
-```
+```java
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
         E x = null;
         int c = -1;

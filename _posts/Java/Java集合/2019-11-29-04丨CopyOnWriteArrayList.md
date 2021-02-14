@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # CopyOnWriteArrayList
 ## 简介
@@ -17,7 +17,7 @@ Java注释：
 翻译：
 >ArrayList的线程安全变体，其中所有可变的操作（{@code add}，{@ code set}等）都是通过底层数组的新副本实现的。
 
-CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组实现，每次对数组的修改都完全拷贝一份新的数组来修改，修改完了再替换掉老数组，这样保证了只阻塞写操作，不阻塞读操作，实现读写分离。
+`CopyOnWriteArrayList`是`ArrayList`的线程安全版本，内部也是通过数组实现，每次对数组的修改都完全拷贝一份新的数组来修改，修改完了再替换掉老数组，这样保证了只阻塞写操作，不阻塞读操作，实现读写分离。
 
 ### 类图
 ![CopyOnWriteArrayList类图](https://s2.ax1x.com/2019/11/29/QAYn3Q.png)
@@ -26,7 +26,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 
 ### 属性
 
-```
+```java
     //锁
     final transient ReentrantLock lock = new ReentrantLock();
 
@@ -38,14 +38,14 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 
 #### CopyOnWriteArrayList()
 创建空数组。
-```
+```java
     public CopyOnWriteArrayList() {
         setArray(new Object[0]);
     }
 ```
 #### CopyOnWriteArrayList(Collection<? extends E> c)
 根据传入的集合初始化
-```
+```java
     public CopyOnWriteArrayList(Collection<? extends E> c) {
         Object[] elements;
         //如果c是CopyOnWriteArrayList类型，直接赋值
@@ -63,7 +63,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 ```
 #### CopyOnWriteArrayList(E[] toCopyIn)
 根据传入数组初始化
-```
+```java
     public CopyOnWriteArrayList(E[] toCopyIn) {
         setArray(Arrays.copyOf(toCopyIn, toCopyIn.length, Object[].class));
     }
@@ -71,7 +71,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 ### 添加
 #### add(E e)
 添加到列表末尾
-```
+```java
     public boolean add(E e) {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -99,7 +99,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 
 #### add(int index, E element)
 添加元素到指定位置
-```
+```java
     public void add(int index, E element) {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -142,7 +142,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 
 #### addIfAbsent(E e)
 添加一个元素，如果这个元素不存在于集合中。
-```
+```java
     public boolean addIfAbsent(E e) {
         Object[] snapshot = getArray();
         return indexOf(e, snapshot, 0, snapshot.length) >= 0 ? false :
@@ -150,7 +150,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
     }
 ```
 如果存在元素，返回元素的索引；否则返回-1。
-```
+```java
     private static int indexOf(Object o, Object[] elements,
                                int index, int fence) {
         if (o == null) {
@@ -166,7 +166,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
     }
 ```
 校验数组是否有修改，添加元素到数组末尾
-```
+```java
     private boolean addIfAbsent(E e, Object[] snapshot) {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -207,7 +207,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 ### 获取
 #### get(int index)
 获取指定索引的元素，支持随机访问，时间复杂度为O(1)。
-```
+```java
     public E get(int index) {
         return get(getArray(), index);
     }
@@ -224,7 +224,7 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 ### 删除
 #### remove(int index)
 删除指定索引位置的元素。
-```
+```java
     public E remove(int index) {
         final ReentrantLock lock = this.lock;
         //加锁
@@ -261,14 +261,14 @@ CopyOnWriteArrayList是ArrayList的线程安全版本，内部也是通过数组
 
 ### size()
 返回数组的长度。
-```
+```java
     public int size() {
         return getArray().length;
     }
 ```
 ## 总结
-- CopyOnWriteArrayList使用ReentrantLock重入锁加锁，保证线程安全；
-- CopyOnWriteArrayList的写操作都要先拷贝一份新数组，在新数组中做修改，修改完了再用新数组替换老数组，所以空间复杂度是O(n)，性能比较低下；
-- CopyOnWriteArrayList的读操作支持随机访问，时间复杂度为O(1)；
-- CopyOnWriteArrayList采用读写分离的思想，读操作不加锁，写操作加锁，且写操作占用较大内存空间，所以适用于读多写少的场合；
-- CopyOnWriteArrayList只保证最终一致性，不保证实时一致性；
+- `CopyOnWriteArrayList`使用`ReentrantLock`重入锁加锁，保证线程安全；
+- `CopyOnWriteArrayList`的写操作都要先拷贝一份新数组，在新数组中做修改，修改完了再用新数组替换老数组，所以空间复杂度是O(n)，性能比较低下；
+- `CopyOnWriteArrayList`的读操作支持随机访问，时间复杂度为O(1)；
+- `CopyOnWriteArrayList`采用读写分离的思想，读操作不加锁，写操作加锁，且写操作占用较大内存空间，所以适用于读多写少的场合；
+- `CopyOnWriteArrayList`只保证最终一致性，不保证实时一致性；

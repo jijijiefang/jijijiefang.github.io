@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # PriorityBlockingQueue
 
@@ -26,7 +26,7 @@ Java注释：
 ## 源码
 ### 属性
 
-```
+```java
     //默认初始容量
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
     //最大容量
@@ -52,7 +52,7 @@ Java注释：
 
 ### 构造方法
 
-```
+```java
     //无参构造方法
     public PriorityBlockingQueue() {
         this(DEFAULT_INITIAL_CAPACITY, null);
@@ -110,7 +110,7 @@ Java注释：
 ### 入队
 #### add(E e)
 入队一定成功，不会抛IllegalStateException。
-```
+```java
     //调用offer()，不会抛异常
     public boolean add(E e) {
         return offer(e);
@@ -118,7 +118,7 @@ Java注释：
 ```
 #### offer(E e)
 入队方法，一定成功。
-```
+```java
     public boolean offer(E e) {
         //元素null校验
         if (e == null)
@@ -171,21 +171,21 @@ Java注释：
 
 #### put(E e)
 入队一定成功，不会阻塞。
-```
+```java
     public void put(E e) {
         offer(e); // never need to block
     }
 ```
 #### offer(E e, long timeout, TimeUnit unit)
 入队一定成功，不会阻塞一段时间。
-```
+```java
     public boolean offer(E e, long timeout, TimeUnit unit) {
         return offer(e); // never need to block
     }
 ```
 ### 扩容
 #### tryGrow(Object[] array, int oldCap)
-```
+```java
     private void tryGrow(Object[] array, int oldCap) {
         //释放锁
         lock.unlock(); // must release and then re-acquire main lock
@@ -237,7 +237,7 @@ Java注释：
 ### 出队
 #### remove(Object o)
 根据元素移除，返回是否成功。
-```
+```java
     public boolean remove(Object o) {
         final ReentrantLock lock = this.lock;
         //加锁
@@ -258,7 +258,7 @@ Java注释：
 ```
 #### take()
 从队列中取元素，如果队列为空阻塞。
-```
+```java
     public E take() throws InterruptedException {
         final ReentrantLock lock = this.lock;
         //可中断锁
@@ -279,7 +279,7 @@ Java注释：
 ```
 #### poll()
 出队返回元素，可能为null。
-```
+```java
     public E poll() {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -292,7 +292,7 @@ Java注释：
 ```
 #### poll(long timeout, TimeUnit unit)
 出队返回元素，可能为null，队列为空时阻塞一段时间。
-```
+```java
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
@@ -312,7 +312,7 @@ Java注释：
 ```
 #### dequeue()
 返回数组索引为0的元素。
-```
+```java
     private E dequeue() {
         //元素个数-1
         int n = size - 1;

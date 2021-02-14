@@ -10,7 +10,7 @@ tags:
 ---
 # FutureTask
 ## 简介
->FutureTask实现了Future，如获取任务执行结果（get）和取消任务（cancel）等。如果任务尚未完成，获取任务执行结果时将会阻塞。一旦执行结束，任务就不能被重启或取消（除非使用runAndReset执行计算）。FutureTask 常用来封装 Callable和Runnable，也可以作为一个任务提交到线程池中执行。
+>`FutureTask`实现了`Future`，如获取任务执行结果（get）和取消任务（cancel）等。如果任务尚未完成，获取任务执行结果时将会阻塞。一旦执行结束，任务就不能被重启或取消（除非使用runAndReset执行计算）。`FutureTask` 常用来封装 Callable和Runnable，也可以作为一个任务提交到线程池中执行。
 
 ### 类图
 ![image](https://s2.ax1x.com/2019/11/24/MOFKEV.png)
@@ -38,7 +38,7 @@ FutureTask中所使用的队列的结构如下：
 
 ### CAS操作
 静态代码块里初始化操作：
-```
+```java
     // Unsafe mechanics
     private static final sun.misc.Unsafe UNSAFE;
     private static final long stateOffset;
@@ -62,7 +62,7 @@ FutureTask中所使用的队列的结构如下：
 ## 源码
 ### WaitNode
 内部类，组成单向链表
-```
+```java
     static final class WaitNode {
         volatile Thread thread;
         volatile WaitNode next;
@@ -71,7 +71,7 @@ FutureTask中所使用的队列的结构如下：
 ```
 ### 属性
 
-```
+```java
     //任务状态
     private volatile int state;
     private static final int NEW          = 0;
@@ -100,7 +100,7 @@ FutureTask中所使用的队列的结构如下：
 ### 构造函数
 - 传入Callable
 - 传入Runnable，使用Executors.callable适配成Callable
-```
+```java
     public FutureTask(Callable<V> callable) {
         if (callable == null)
             throw new NullPointerException();
@@ -113,7 +113,7 @@ FutureTask中所使用的队列的结构如下：
     }
 ```
 `Executors.callable`源码：
-```
+```java
     public static <T> Callable<T> callable(Runnable task, T result) {
         if (task == null)
             throw new NullPointerException();
@@ -135,7 +135,7 @@ FutureTask中所使用的队列的结构如下：
 ```
 ### run()
 `FutureTask.run()`源码：
-```
+```java
     public void run() {
         //如果任务状态不为NEW或设置任务线程为当前线程不成功返回
         if (state != NEW ||
@@ -171,7 +171,7 @@ FutureTask中所使用的队列的结构如下：
     }
 ```
 任务执行成功或被取消，设置结果`set()`:
-```
+```java
     protected void set(V v) {
         //state由NEW设置为COMPLETING
         if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) {
@@ -183,7 +183,7 @@ FutureTask中所使用的队列的结构如下：
     }
 ```
 完成结果设置后，清理阻塞队列`finishCompletion()`：
-```
+```java
     private void finishCompletion() {
         //栈顶
         for (WaitNode q; (q = waiters) != null;) {
@@ -212,7 +212,7 @@ FutureTask中所使用的队列的结构如下：
     }
 ```
 处理中断`handlePossibleCancellationInterrupt()`:
-```
+```java
     private void handlePossibleCancellationInterrupt(int s) {
         //如果当前的state是INTERRUPTING，原地自旋，直到state状态转换成终止态。
         if (s == INTERRUPTING)
@@ -222,7 +222,7 @@ FutureTask中所使用的队列的结构如下：
 ```
 ### cancel
 `FutureTask.cancel()`继承自`Future`接口:
-```
+```java
     public boolean cancel(boolean mayInterruptIfRunning) {
         //根据mayInterruptIfRunning的值将state由NEW设置成INTERRUPTING或者CANCELLED
         //只要state不是NEW就返回false
@@ -249,12 +249,12 @@ FutureTask中所使用的队列的结构如下：
 ```
 `cancel`方法实际完成以下两种状态转换:
 
-- NEW -> CANCELLED (mayInterruptIfRunning=false)
-- NEW -> INTERRUPTING -> INTERRUPTED (mayInterruptIfRunning=true)
+- `NEW -> CANCELLED (mayInterruptIfRunning=false)`
+- `NEW -> INTERRUPTING -> INTERRUPTED (mayInterruptIfRunning=true)`
 
 ### isCancelled()
 该方法用于判断任务是否被取消了,如果一个任务在正常执行完成之前被Cancel掉了, 则返回true。
-```
+```java
     public boolean isCancelled() {
         //state >= CANCELLED 包含状态: CANCELLED/ INTERRUPTING/INTERRUPTED
         return state >= CANCELLED;
@@ -262,7 +262,7 @@ FutureTask中所使用的队列的结构如下：
 ```
 ### isDone()
 只要state状态不是NEW，则任务已经执行完毕了。
-```
+```java
     public boolean isDone() {
         return state != NEW;
     }
@@ -270,7 +270,7 @@ FutureTask中所使用的队列的结构如下：
 ### get()
 阻塞获取执行结果，直到获取到或抛异常。<br>
 FutureTask中会涉及到两类线程，一类是执行任务的线程，它只有一个，FutureTask的run方法就由该线程来执行；一类是获取任务执行结果的线程，它可以有多个，并发执行get()获取结果。如果任务还没有执行完，则这些线程就需要进入Treiber栈中挂起，直到任务执行结束，或者等待的线程自身被中断。
-```
+```java
     public V get() throws InterruptedException, ExecutionException {
         int s = state;
         if (s <= COMPLETING)
@@ -280,8 +280,9 @@ FutureTask中会涉及到两类线程，一类是执行任务的线程，它只�
     }
 ```
 
-FutureTask.awaitDone():
-```
+`FutureTask.awaitDone()`:
+
+```java
 private int awaitDone(boolean timed, long nanos)
         throws InterruptedException {
         final long deadline = timed ? System.nanoTime() + nanos : 0L;
@@ -331,7 +332,7 @@ private int awaitDone(boolean timed, long nanos)
     }
 ```
 出栈删除WaitNode：
-```
+```java
     private void removeWaiter(WaitNode node) {
         if (node != null) {
             node.thread = null;
@@ -356,7 +357,7 @@ private int awaitDone(boolean timed, long nanos)
     }
 ```
 根据state状态返回结果或异常`report()`：
-```
+```java
     private V report(int s) throws ExecutionException {
         Object x = outcome;
         if (s == NORMAL)

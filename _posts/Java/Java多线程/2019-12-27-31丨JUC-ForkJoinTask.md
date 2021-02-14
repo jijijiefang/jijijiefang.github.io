@@ -30,7 +30,7 @@ Java注释
 ## 源码
 
 ### 属性
-```
+```java
     /**任务运行状态**/
     volatile int status; // accessed directly by pool and workers
     //屏蔽掉非完成位
@@ -50,7 +50,7 @@ Java注释
 
 #### fork()
 异步提交任务到队列，返回`ForkJoinTask`。
-```
+```java
     public final ForkJoinTask<V> fork() {
         Thread t;
         if ((t = Thread.currentThread()) instanceof ForkJoinWorkerThread)
@@ -63,7 +63,7 @@ Java注释
 ```
 #### invoke()
 执行任务，阻塞等待结果返回。
-```
+```java
     public final V invoke() {
         int s;
         if ((s = doInvoke() & DONE_MASK) != NORMAL)
@@ -127,7 +127,7 @@ Java注释
 ### 阻塞外部线程
 #### externalAwaitDone()
 阻塞外部非工作线程，直到完成。
-```
+```java
     private int externalAwaitDone() {
         int s = ((this instanceof CountedCompleter) ? // try helping
                 //当前任务是CountedCompleter，使用外部帮助完成,并将完成状态返回
@@ -167,7 +167,7 @@ Java注释
 ```
 #### externalInterruptibleAwaitDone()
 逻辑与`externalAwaitDone()`类似，只是线程中断处理为抛异常。
-```
+```java
     private int externalInterruptibleAwaitDone() throws InterruptedException {
         int s;
         //判断线程中断
@@ -196,7 +196,7 @@ Java注释
 ### 返回结果
 #### join()
 等待任务完成并获取结果，尝试在当前线程中开始执行。
-```
+```java
     public final V join() {
         int s;
         //如果执行结果不为正常，抛异常
@@ -222,7 +222,7 @@ Java注释
 ```
 #### invoke()
 提交任务等待任务完成并获取结果（当前线程执行）。
-```
+```java
     public final V invoke() {
         int s;
         if ((s = doInvoke() & DONE_MASK) != NORMAL)
@@ -243,7 +243,7 @@ Java注释
 ```
 #### get()
 阻塞获取结果。
-```
+```java
     public final V get() throws InterruptedException, ExecutionException {
         //如果当前是ForkJoinWorkerThread线程直接调用doJoin
         int s = (Thread.currentThread() instanceof ForkJoinWorkerThread) ?
@@ -259,7 +259,7 @@ Java注释
     }
 ```
 ### 辅助方法
-```
+```java
     //取消一个任务的执行,直接将status设置成CANCELLED,设置后判断该status 是否为CANCELLED,是则true否则false.
     public boolean cancel(boolean mayInterruptIfRunning) {
         return (setCompletion(CANCELLED) & DONE_MASK) == CANCELLED;
@@ -339,7 +339,7 @@ Java注释
 
 ![image](https://s2.ax1x.com/2019/12/27/lZCAeK.png)
 
-```
+```java
 public abstract class RecursiveAction extends ForkJoinTask<Void> {
     private static final long serialVersionUID = 5232453952276485070L;
     //任务计算
@@ -360,7 +360,7 @@ public abstract class RecursiveAction extends ForkJoinTask<Void> {
 
 ![image](https://s2.ax1x.com/2019/12/27/lZCQyt.png)
 
-```
+```java
 public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
     private static final long serialVersionUID = 5232453952276485270L;
     //结果
@@ -388,9 +388,9 @@ public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
     - 当状态完成时，为负数，表示正常完成、取消或者异常；
     - 阻塞等待的任务设置了SIGNAL；
 - 内部提交
-    - fork:直接加入到当前线程的workQueue中;
-    - invoke:提交任务等待任务完成并获取结果（当前线程执行）;
-    - join:等待任务完成并获取结果，尝试在当前线程中开始执行;
+    - `fork`:直接加入到当前线程的workQueue中;
+    - `invoke`:提交任务等待任务完成并获取结果（当前线程执行）;
+    - `join`:等待任务完成并获取结果，尝试在当前线程中开始执行;
 - 任务类型
     - `RecursiveAction`:不返回结果的计算;
     - `RecursiveTask`:返回结果;

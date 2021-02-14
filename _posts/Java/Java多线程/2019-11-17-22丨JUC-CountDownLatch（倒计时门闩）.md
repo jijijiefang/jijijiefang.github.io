@@ -11,12 +11,12 @@ tags:
 # JUC-CountDownLatch
 
 ## 简介
->CountDownLatch是一个同步辅助类，通过AQS实现的一个闭锁。在其他线程完成它们的操作之前，允许一个多个线程等待。简单来说，CountDownLatch中有一个锁计数，在计数到达0之前，线程会一直等待。
+>`CountDownLatch`是一个同步辅助类，通过AQS实现的一个闭锁。在其他线程完成它们的操作之前，允许一个多个线程等待。简单来说，`CountDownLatch`中有一个锁计数，在计数到达0之前，线程会一直等待。
 
 ![原理图](https://s2.ax1x.com/2019/11/17/MrLih4.md.png)
 
 ## 用法
-```
+```java
     //初始化
     CountDownLatch countDownLatch = new CountDownLatch(10);
     for (int i = 0; i < 10; i++) {
@@ -36,9 +36,9 @@ tags:
 
 ![image](https://s2.ax1x.com/2019/11/17/MsSuM4.png)
 ### 源码
-#### CountDownLatch.Sync源码
+#### `CountDownLatch.Sync`源码
 
-```
+```java
     private static final class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = 4982264981922014374L;
         //构造函数，设置AQS的state
@@ -71,7 +71,7 @@ tags:
 ```
 
 #### CountDownLatch构造函数
-```
+```java
     //CountDownLatch构造函数
     public CountDownLatch(int count) {
         if (count < 0) throw new IllegalArgumentException("count < 0");
@@ -83,7 +83,7 @@ tags:
     }
 ```
 #### await()
-```
+```java
     //使当前线程等待，直到锁存器计数到零为止，除非该线程{@linkplain Thread＃interrupt interrupted}。
     public void await() throws InterruptedException {
         //
@@ -101,7 +101,7 @@ tags:
 ```
 
 #### CountDownLatch()
-```
+```java
     //减少锁存器的计数，如果计数达到零，则释放所有等待线程
     public void countDown() {
         sync.releaseShared(1);
@@ -120,5 +120,5 @@ tags:
 - **`CountDownLatch`内部通过共享锁实现**。
 - 在创建`CountDownLatch`实例时，需要传递一个int型的参数：count，该参数为计数器的初始值，也可以理解为该共享锁可以获取的总次数。
 - 当某个线程调用`await()`方法，程序首先判断count的值是否为0，如果不会0的话则会一直等待直到为0为止。当其他线程调用countDown()方法时，则执行释放共享锁状态，使count - 1。
-- 当在创建CountDownLatch时初始化的count参数，必须要有count线程调用countDown方法才会使计数器count等于0，锁才会释放，前面等待的线程才会继续运行。
+- 当在创建`CountDownLatch`时初始化的count参数，必须要有count线程调用`countDown()`方法才会使计数器count等于0，锁才会释放，前面等待的线程才会继续运行。
 - **`CountDownLatch`不能重置**。

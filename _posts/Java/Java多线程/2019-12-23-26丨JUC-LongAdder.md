@@ -13,11 +13,11 @@ tags:
 ## 简介
 Java注释
 >One or more variables that together maintain an initially zero {@code long} sum.  When updates (method {@link #add}) are contended across threads, the set of variables may grow dynamically to reduce contention. Method {@link #sum} (or, equivalently, {@link #longValue}) returns the current total combined across the variables maintaining the sum.
- 
+
 翻译
 >一个或多个变量共同维持最初的零。当跨线程竞争更新`add`时，变量集可能会动态增长以减少竞争。方法`sum`或等效地`longValue`,返回变量中保持总和的当前总数。
 
-LongAdder在高并发的场景下会比AtomicLong具有更好的性能，代价是消耗更多的内存空间。
+`LongAdder`在高并发的场景下会比`AtomicLong`具有更好的性能，代价是消耗更多的内存空间。
 
 ### 类图
 
@@ -28,14 +28,14 @@ LongAdder在高并发的场景下会比AtomicLong具有更好的性能，代价�
 >比如有三个ThreadA、ThreadB、ThreadC，每个线程对value增加10。
 
 对于`AtomicLong`，最终结果的计算始终是下面这个形式：
-```
+```java
     value = 10 + 10 + 10 = 30
 ```
 但是对于`LongAdder`来说，内部有一个`base`变量，一个`Cell[]`数组。
 `base`变量：非竞态条件下，直接累加到该变量上
 `Cell[]`数组：竞态条件下，累加个各个线程自己的槽`Cell[i]`中
 最终结果的计算是下面这个形式：
-```
+```java
     value = base + ∑Cell[i]
 ```
 
@@ -43,7 +43,7 @@ LongAdder在高并发的场景下会比AtomicLong具有更好的性能，代价�
 
 ### Striped64
 `Striped64`是在java8中添加用来支持累加器的并发组件，它可以在并发环境下使用来做某种计数，`Striped64`的设计思路是在竞争激烈的时候尽量分散竞争，在实现上，`Striped64`维护了一个`base`和一个`Cell`数组，计数线程会首先试图更新`base`变量，如果成功则退出计数，否则会认为当前竞争是很激烈的，那么就会通过`Cell`数组来分散计数，`Striped64`根据线程来计算哈希，然后将不同的线程分散到不同的`Cell`数组的`index`上，然后这个线程的计数内容就会保存在该`Cell`的位置上面，基于这种设计，最后的总计数需要结合`base`以及散落在`Cell`数组中的计数内容。
-```
+```java
 abstract class Striped64 extends Number {
     //Cell内部类
     @sun.misc.Contended static final class Cell {
@@ -323,7 +323,7 @@ abstract class Striped64 extends Number {
 ```
 ### LongAdder
 
-```
+```java
 public class LongAdder extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
     //空构造器
@@ -443,7 +443,7 @@ public class LongAdder extends Striped64 implements Serializable {
 
 ### LongAccumulator
 `LongAccumulator`是`LongAdder`的增强版,`LongAdder`只能针对数值的进行加减运算，而`LongAccumulator`提供了自定义的函数操作。通过`LongBinaryOperator`，可以自定义对入参的任意操作，并返回结果（`LongBinaryOperator.applyAsLong(long left, long right)`接收2个long作为参数，并返回1个long）。`LongAccumulator`内部原理和`LongAdder`几乎完全一样，都是利用了父类`Striped64`的`longAccumulate`方法。
-```
+```java
 public class LongAccumulator extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
     //通过实现LongBinaryOperator，实现自定义计算

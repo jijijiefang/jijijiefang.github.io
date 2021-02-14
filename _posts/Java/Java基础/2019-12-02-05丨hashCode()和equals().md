@@ -18,7 +18,8 @@ Java注释：
 >返回对象的哈希码值。此方法是为了支持哈希表，例如HashMap。
 
 ### 约定
-hashCode()方法注释
+`hashCode()`方法注释
+
 ```
      * <p>
      * The general contract of {@code hashCode} is:
@@ -104,19 +105,20 @@ Java注释：
 - 对于类中的每个“重要”的属性，请检查该参数属性是否与该对象对应的属性相匹配。如果所有这些测试成功，返回true，否则返回false。如果步骤2中的类型是一个接口，那么必须通过接口方法访问参数的属性;如果类型是类，则可以直接访问属性，这取决于属性的访问权限。
 
 ## hashCode()和equals()的联系
-hashCode()方法和equal()方法的作用其实一样，在Java里都是用来对比两个对象是否相等：
-- equal()相等的两个对象他们的hashCode()肯定相等，也就是用equal()对比是绝对可靠的；
-- hashCode()相等的两个对象他们的equal()不一定相等，也就是hashCode()不是绝对可靠的。
+`hashCode()`方法和`equal()`方法的作用其实一样，在Java里都是用来对比两个对象是否相等：
 
-对于需要大量并且快速的对比的话如果都用equal()去做显然效率太低，所以解决方式是：
-- 每当需要对比的时候，首先用hashCode()去对比，如果hashCode()不一样，则表示这两个对象肯定不相等（也就不必再用equal()去对比）；
-- 如果hashCode()相同，此时再对比他们的equal()，如果equal()也相同，则表示这两个对象是真的相同了，这样既能大大提高了效率也保证了对比的绝对正确性；
+- `equal()`相等的两个对象他们的`hashCode()`肯定相等，也就是用`equal()`对比是绝对可靠的；
+- `hashCode()`相等的两个对象他们的`equal()`不一定相等，也就是`hashCode()`不是绝对可靠的。
+
+对于需要大量并且快速的对比的话如果都用`equal()`去做显然效率太低，所以解决方式是：
+- 每当需要对比的时候，首先用`hashCode()`去对比，如果`hashCode()`不一样，则表示这两个对象肯定不相等（也就不必再用`equal()`去对比）；
+- 如果`hashCode()`相同，此时再对比他们的`equal()`，如果`equal()`也相同，则表示这两个对象是真的相同了，这样既能大大提高了效率也保证了对比的绝对正确性；
 
 ## String中的hashCode()和equals()
 
-String类里复写了hashCode()和equals()两个方法，所以Map中经常使用String作为key。
+String类里复写了`hashCode()`和`equals()`两个方法，所以Map中经常使用String作为key。
 
-```
+```java
     public int hashCode() {
         int h = hash;
         if (h == 0 && value.length > 0) {
@@ -154,10 +156,10 @@ String类里复写了hashCode()和equals()两个方法，所以Map中经常使�
 ```
 
 ## 总结
-- hashCode()用于提高散列表数据结构中中查找的效率，线性表中没有用；
-- 若重写了equals(Object obj)方法，则必须重写hashCode()方法；
-- 若两个对象equals(Object obj)返回true，则hashCode（）也必须返回相同的int数；
-- 若两个对象equals(Object obj)返回false，则hashCode（）不一定返回不同的int数；
-- 若两个对象hashCode（）返回相同int数，则equals（Object obj）不一定返回true；
-- 若两个对象hashCode（）返回不同int数，则equals（Object obj）一定返回false；
-- 同一对象在执行期间若已经存储在集合中，则不能修改影响hashCode值的相关信息，否则会导致内存泄露问题；
+- `hashCode()`用于提高散列表数据结构中中查找的效率，线性表中没有用；
+- 若重写了`equals(Object obj)`方法，则必须重写`hashCode()`方法；
+- 若两个对象`equals(Object obj)`返回true，则`hashCode()`也必须返回相同的int数；
+- 若两个对象`equals(Object obj)`返回false，则`hashCode()`不一定返回不同的int数；
+- 若两个对象`hashCode()`返回相同int数，则`equals(Object obj)`不一定返回true；
+- 若两个对象`hashCode()`返回不同int数，则`equals(Object obj)`一定返回false；
+- 同一对象在执行期间若已经存储在集合中，则不能修改影响`hashCode`值的相关信息，否则会导致内存泄露问题；

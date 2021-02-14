@@ -15,7 +15,7 @@ Java注释
 >A capability-based lock with three modes for controlling read/write access.  The state of a StampedLock consists of a version and mode.Lock acquisition methods return a stamp that represents and controls access with respect to a lock state; "try" versions of these methods may instead return the special value zero to represent failure to acquire access. Lock release and conversion methods require stamps as arguments, and fail if they do not match the state of the lock.
 
 翻译
->基于功能的锁，具有三种模式来控制读/写访问。 StampedLock的状态由版本和模式组成。 锁定获取方法返回一个表示并控制相对于锁定状态的访问的标记；这些方法的“尝试”版本可能会改为将特殊值零返回给，表示无法获取访问权限。锁释放和转换方法需要使用图章作为参数，并且如果它们与锁的状态不匹配，则会失败。
+>基于功能的锁，具有三种模式来控制读/写访问。 `StampedLock`的状态由版本和模式组成。 锁定获取方法返回一个表示并控制相对于锁定状态的访问的标记；这些方法的“尝试”版本可能会改为将特殊值零返回给，表示无法获取访问权限。锁释放和转换方法需要使用图章作为参数，并且如果它们与锁的状态不匹配，则会失败。
 
 `StampedLock`具有三种模式：写模式、读模式、乐观读模式。
 ### 类图
@@ -34,9 +34,9 @@ Java注释
 1. 所有获取锁的方法，都返回一个邮戳（Stamp），Stamp为0表示获取失败，其余都表示成功；
 2. 所有释放锁的方法，都需要一个邮戳（Stamp），这个Stamp必须是和成功获取锁时得到的Stamp一致；
 3. `StampedLock`是不可重入的；（如果一个线程已经持有了写锁，再去获取写锁的话就会造成死锁）；
-4. StampedLock有三种访问模式：
-    - **Reading（读模式）**：功能和ReentrantReadWriteLock的读锁类似；
-    - **Writing（写模式）**：功能和ReentrantReadWriteLock的写锁类似；
+4. `StampedLock`有三种访问模式：
+    - **Reading（读模式）**：功能和`ReentrantReadWriteLock`的读锁类似；
+    - **Writing（写模式）**：功能和`ReentrantReadWriteLock`的写锁类似；
     - **Optimistic reading（乐观读模式）**：这是一种优化的读模式；
 5. `StampedLock`支持读锁和写锁的相互转换；`ReentrantReadWriteLock`中，当线程获取到写锁后，可以降级为读锁，但是读锁是不能直接升级为写锁的；`StampedLock`提供了读锁和写锁相互转换的功能；
 6. 无论写锁还是读锁，都不支持`Conditon`等待；
@@ -46,7 +46,7 @@ Java注释
 ![image](https://s2.ax1x.com/2019/12/25/lFvIyQ.png)
 
 ## 示例
-```
+```java
 public class StampedLockTest {
     public static void main(String[] args) {
         int x = 0;
@@ -106,7 +106,7 @@ public class StampedLockTest {
 ## 源码
 
 ### 属性
-```
+```java
     //CPU核数
     private static final int NCPU = Runtime.getRuntime().availableProcessors();
     //入队前最大重试次数
@@ -162,7 +162,7 @@ public class StampedLockTest {
 ### 内部类
 #### WNode
 类似AQS队列中的节点，组成双向链表，内部维护着阻塞的线程。
-```
+```java
     static final class WNode {
         //前置节点
         volatile WNode prev;
@@ -181,14 +181,14 @@ public class StampedLockTest {
 ```
 ### 构造方法
 state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是初始版本号。
-```
+```java
     public StampedLock() {
         state = ORIGIN;
     }
 ```
 ### writeLock()
 获取写锁。
-```
+```java
     //以独占方式获取锁，必要时阻塞，直到可用为止
     public long writeLock() {
         long s, next;  // bypass acquireWrite in fully unlocked case only
@@ -207,7 +207,7 @@ state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是
 
 #### acquireWrite(boolean interruptible, long deadline)
 
-```
+```java
     private long acquireWrite(boolean interruptible, long deadline) {
         WNode node = null, p;
         //入队自旋
@@ -337,7 +337,7 @@ state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是
 
 #### unlockWrite(long stamp)
 
-```
+```java
     public void unlockWrite(long stamp) {
         WNode h;
         //如果版本号有变化或锁状态为没有加锁
@@ -373,7 +373,7 @@ state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是
 
 ### readLock()
 获取读锁。
-```
+```java
     public long readLock() {
         long s = state, next;  // bypass acquireRead on common uncontended case
         // 没有写锁占用，并且读锁被获取的次数未达到最大值
@@ -386,7 +386,7 @@ state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是
 ```
 #### acquireRead(boolean interruptible, long deadline)
 
-```
+```java
     private long acquireRead(boolean interruptible, long deadline) {
         WNode node = null, p;
         //自旋，入队
@@ -599,7 +599,7 @@ state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是
 
 #### unlockRead(long stamp)
 
-```
+```java
     public void unlockRead(long stamp) {
         long s, m; WNode h;
         for (;;) {
@@ -641,7 +641,7 @@ state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是
 ```
 ### tryOptimisticRead()
 乐观读。
-```
+```java
     //如果没有写锁就返回s & SBITS，否则返回0
     public long tryOptimisticRead() {
         long s;
@@ -650,23 +650,23 @@ state的初始值为ORIGIN（256），它的二进制是 1 0000 0000，也就是
 ```
 ### validate(long stamp)
 检查锁状态是否发生变化。
-```
+```java
     public boolean validate(long stamp) {
         U.loadFence();
         return (stamp & SBITS) == (state & SBITS);
     }
 ```
 ## 总结
-1. StampedLock也是一种读写锁，它不是基于AQS实现的；
-2. StampedLock相较于ReentrantReadWriteLock多了一种乐观读的模式，以及读锁转化为写锁的方法；
-3. StampedLock的state存储的是版本号，确切地说是高24位存储的是版本号，写锁的释放会增加其版本号，读锁不会；
-4. StampedLock的低7位存储的读锁被获取的次数，第8位存储的是写锁被获取的次数；
-5. StampedLock不是可重入锁，因为只有第8位标识写锁被获取了，并不能重复获取；
-6. StampedLock中获取锁的过程使用了大量的自旋操作，对于短任务的执行会比较高效，长任务的执行会浪费大量CPU；
-7. StampedLock不能实现条件锁；
+1. `StampedLock`也是一种读写锁，它不是基于AQS实现的；
+2. `StampedLock`相较于`ReentrantReadWriteLock`多了一种乐观读的模式，以及读锁转化为写锁的方法；
+3. `StampedLock`的state存储的是版本号，确切地说是高24位存储的是版本号，写锁的释放会增加其版本号，读锁不会；
+4. `StampedLock`的低7位存储的读锁被获取的次数，第8位存储的是写锁被获取的次数；
+5. `StampedLock`不是可重入锁，因为只有第8位标识写锁被获取了，并不能重复获取；
+6. `StampedLock`中获取锁的过程使用了大量的自旋操作，对于短任务的执行会比较高效，长任务的执行会浪费大量CPU；
+7. `StampedLock`不能实现条件锁；
 ### 对比
 
-StampedLock与ReentrantReadWriteLock作为两种不同的读写锁方式，如下异同点：
+`StampedLock`与`ReentrantReadWriteLock`作为两种不同的读写锁方式，如下异同点：
 
 1. 两者都有获取读锁、获取写锁、释放读锁、释放写锁的方法，这是相同点；
 2. 两者的结构基本类似，都是使用state + CLH队列；

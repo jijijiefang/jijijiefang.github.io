@@ -10,12 +10,12 @@ tags:
 ---
 # JUC-AQS-Condition接口实现
 ## Condition简介
-Condition是关联在Lock上的条件，提供对线程更加灵活和详细的唤醒和等待操作。
-Condition与Object.wait和Object.notify的比较：
+`Condition`是关联在`Lock`上的条件，提供对线程更加灵活和详细的唤醒和等待操作。
+`Condition`与`Object.wait`和`Object.notify`的比较：
 
 对比项 | Object监视器方法|Condition
 ---|---|---
-前置条件 | 获取对象的锁|调用Lock.lock()获取锁<br>调用Lock.newCondition()获取Condition对象
+前置条件 | 获取对象的锁|调用`Lock.lock()`获取锁<br>调用`Lock.newCondition()`获取`Condition`对象
 调用方式| 直接调用|直接调用
 等待队列个数|一个|多个
 当前线程释放锁并进入等待状态|支持|支持
@@ -25,17 +25,17 @@ Condition与Object.wait和Object.notify的比较：
 唤醒等待队列中的某个线程|支持|支持
 唤醒等待队列中的全部线程|支持|支持
 
-Condition是一种广义上的条件队列。他为线程提供了一种更为灵活的等待/通知模式，线程在调用await方法后执行挂起操作，直到线程等待的某个条件为真时才会被唤醒。Condition必须要配合锁一起使用，因为对共享状态变量的访问发生在多线程环境下。一个Condition的实例必须与一个Lock绑定，因此Condition一般都是作为Lock的内部实现。
+`Condition`是一种广义上的条件队列。他为线程提供了一种更为灵活的等待/通知模式，线程在调用`await()`方法后执行挂起操作，直到线程等待的某个条件为真时才会被唤醒。`Condition`必须要配合锁一起使用，因为对共享状态变量的访问发生在多线程环境下。一个`Condition`的实例必须与一个`Lock`绑定，因此`Condition`一般都是作为`Lock`的内部实现。
 
-wait/notify机制来类比await/signal机制：
+`wait/notify`机制来类比`await/signal`机制：
 
-- 调用wait方法的线程首先必须是已经进入了同步代码块，即已经获取了`监视器锁`；与之类似，调用await方法的线程首先必须获得`lock锁`;
-- 调用wait方法的线程会释放已经获得的监视器锁，进入当前监视器锁的等待队列（`wait set`）中；与之类似，调用await方法的线程会释放已经获得的lock锁，进入到当前Condtion对应的`条件队列`中。
-- 调用监视器锁的notify方法会唤醒等待在该监视器锁上的线程，这些线程将开始参与锁竞争，并在获得锁后，从`wait`方法处恢复执行；与之类似，调用Condtion的signal方法会唤醒对应的条件队列中的线程，这些线程将开始参与锁竞争，并在获得锁后，从`await`方法处开始恢复执行。
+- 调用`wait`方法的线程首先必须是已经进入了同步代码块，即已经获取了`监视器锁`；与之类似，调用`await`方法的线程首先必须获得`lock锁`;
+- 调用`wait`方法的线程会释放已经获得的监视器锁，进入当前监视器锁的等待队列（`wait set`）中；与之类似，调用await方法的线程会释放已经获得的`lock`锁，进入到当前`Condtion`对应的`条件队列`中。
+- 调用监视器锁的`notify`方法会唤醒等待在该监视器锁上的线程，这些线程将开始参与锁竞争，并在获得锁后，从`wait`方法处恢复执行；与之类似，调用`Condtion`的`signal`方法会唤醒对应的条件队列中的线程，这些线程将开始参与锁竞争，并在获得锁后，从`await`方法处开始恢复执行。
 
 ## 示例
-使用Condition实现生产者和消费者：
-```
+使用`Condition`实现生产者和消费者：
+```java
 class BoundedBuffer{
     final ReentrantLock lock = new ReentrantLock();
     final Condition producer = lock.newCondition();
@@ -92,31 +92,32 @@ class BoundedBuffer{
 #### 同步队列
 ![同步队列](https://s2.ax1x.com/2019/11/04/KvhVRx.png)
 #### 条件队列
-每创建一个Condtion对象就会对应一个Condtion队列，每一个调用了Condtion对象的await方法的线程都会被包装成Node扔进一个条件队列中。
+每创建一个`Condtion`对象就会对应一个`Condtion`队列，每一个调用了`Condtion`对象的`await`方法的线程都会被包装成Node扔进一个条件队列中。
 
 ![条件队列](https://s2.ax1x.com/2019/11/14/MNWW60.png)
 `condition queue`是一个单向链表，在该链表中使用`nextWaiter`属性来串联链表。但是，就像在`sync queue`中不会使用`nextWaiter`属性来串联链表一样，在condition queue中，也并不会用到prev, next属性，它们的值都为null。也就是说，在条件队列中，Node节点真正用到的属性只有三个：
+
 - `thread`：代表当前正在等待某个条件的线程
 - `waitStatus`：条件的等待状态
 - `nextWaiter`：指向条件队列中的下一个节点
 
 waitStatus取值：
-```
+```java
 volatile int waitStatus;
 static final int CANCELLED =  1;
 static final int SIGNAL    = -1;
 static final int CONDITION = -2;
 static final int PROPAGATE = -3;
 ```
-`CONDITION`表示线程处于正常的等待状态，而只要waitStatus不是CONDITION，就认为线程不再等待了，此时就要从条件队列中出队。
+`CONDITION`表示线程处于正常的等待状态，而只要`waitStatus`不是`CONDITION`，就认为线程不再等待了，此时就要从条件队列中出队。
 
 - `condition queue`:入队时已经持有了锁 -> 在队列中释放锁 -> 离开队列时没有锁 -> 转移到`sync queue`
 - `sync queue`：入队时没有锁 -> 在队列中争锁 -> 离开队列时获得了锁
 
 ## CondtionObject
-AQS对Condition这个接口的实现主要是通过ConditionObject，，它的核心实现就是是一个条件队列，每一个在某个condition上等待的线程都会被封装成Node对象扔进这个条件队列。
+AQS对`Condition`这个接口的实现主要是通过`ConditionObject`，，它的核心实现就是是一个条件队列，每一个在某个`condition`上等待的线程都会被封装成Node对象扔进这个条件队列。
 ### 核心属性
-```
+```java
 public class ConditionObject implements Condition, java.io.Serializable {
     private transient Node firstWaiter;
 
@@ -125,13 +126,13 @@ public class ConditionObject implements Condition, java.io.Serializable {
 ```
 ### 构造函数
 条件队列是延时初始化的
-```
+```java
 public ConditionObject() { }
 ```
 ## Condition接口方法实现
 
 ### await()
-```
+```java
 //释放锁，并进入等待队列
 public final void await() throws InterruptedException {
     // 如果当前线程在调动await()方法前已经被中断了，则直接抛出
@@ -161,16 +162,16 @@ public final void await() throws InterruptedException {
 具体实现步骤：
 
 - 将当前线程封装成Node扔进条件队列中;
-- 在节点被成功添加到队列的末尾后，调用fullyRelease来释放当前线程所占用的锁;
-- 在当前线程的锁被完全释放了之后，调用LockSupport.park(this)把当前线程挂起;
+- 在节点被成功添加到队列的末尾后，调用`fullyRelease()`来释放当前线程所占用的锁;
+- 在当前线程的锁被完全释放了之后，调用`LockSupport.park(this)`把当前线程挂起;
 - 判断等待期间中断状态
     - 0：代表整个过程中一直没有中断发生
     - `THROW_IE`: 表示退出`await()`方法时需要抛出`InterruptedException`，这种模式对应于**中断发生在signal之前**
-    - REINTERRUPT: 表示退出`await()`方法时只需要再自我中断以下，这种模式对应于中断发生在signal之后，即**中断来的太晚了**。
+    - `REINTERRUPT`: 表示退出`await()`方法时只需要再自我中断以下，这种模式对应于中断发生在`signal()`之后，即**中断来的太晚了**。
 
 
 #### addConditionWaiter
-```
+```java
 //添加一个新的Condition进入条件等待队列
 private Node addConditionWaiter() {
     Node t = lastWaiter;
@@ -195,7 +196,7 @@ private Node addConditionWaiter() {
 - `sync queue`是一个双向队列，在节点入队后，要同时修改当前节点的前驱和前驱节点的后继；而在`condtion queue`中，我们只修改了前驱节点的`nextWaiter`,也就是说，`condtion queue`是作为单向队列来使用的。
 
 #### fullyRelease
-```
+```java
 //完全释放锁
 final int fullyRelease(Node node) {
     boolean failed = true;
@@ -216,7 +217,7 @@ final int fullyRelease(Node node) {
 ```
 #### isOnSyncQueue
 挂起当前线程之前先用`isOnSyncQueue`确保了它不在`sync queue`中:
-```
+```java
 //判断是否在同步队列中
 final boolean isOnSyncQueue(Node node) {
     if (node.waitStatus == Node.CONDITION || node.prev == null)
@@ -239,7 +240,7 @@ private boolean findNodeFromTail(Node node) {
 ```
 #### checkInterruptWhileWaiting
 判断中断状态：
-```
+```java
 private static final int REINTERRUPT =  1;
 private static final int THROW_IE    = -1;
 
@@ -262,7 +263,7 @@ final boolean transferAfterCancelledWait(Node node) {
 }
 ```
 汇报中断状态：
-```
+```java
 private void reportInterruptAfterWait(int interruptMode)
     throws InterruptedException {
     if (interruptMode == THROW_IE)
@@ -273,31 +274,32 @@ private void reportInterruptAfterWait(int interruptMode)
 ```
 #### await()总结
 
-- 进入await()时必须是已经持有了锁
-- 离开await()时同样必须是已经持有了锁
-- 调用await()会使得当前线程被封装成Node扔进条件队列，然后释放所持有的锁
-- 释放锁后，当前线程将在condition queue中被挂起，等待signal或者中断
+- 进入`await()`时必须是已经持有了锁
+- 离开`await()`时同样必须是已经持有了锁
+- 调用`await()`会使得当前线程被封装成Node扔进条件队列，然后释放所持有的锁
+- 释放锁后，当前线程将在condition queue中被挂起，等待`signal()`或者中断
 - 线程被唤醒后会将会离开condition queue进入sync queue中进行抢锁
-- 若在线程抢到锁之前发生过中断，则根据中断发生在signal之前还是之后记录中断模式
+- 若在线程抢到锁之前发生过中断，则根据中断发生在`signal()`之前还是之后记录中断模式
 - 线程在抢到锁后进行善后工作（离开condition queue, 处理中断异常）
-- 线程已经持有了锁，从await()方法返回
+- 线程已经持有了锁，从`await()`方法返回
 
 ![image](https://s2.ax1x.com/2019/11/14/MU85EF.png)
 
 **中断和signal所起到的作用都是将线程从`condition queue`中移除，加入到`sync queue`中去争锁，所不同的是，signal方法被认为是正常唤醒线程，中断方法被认为是非正常唤醒线程，如果中断发生在signal之前，则我们在最终返回时，应当抛出`InterruptedException`；如果中断发生在signal之后，我们就认为线程本身已经被正常唤醒了，这个中断来的太晚了，我们直接忽略它，并在`await()`返回时再自我中断一下，这种做法相当于将中断推迟至`await()`返回时再发生。**
+
 ### signalAll
 
-- 调用signalAll方法的线程本身是已经持有了锁，现在准备释放锁了；
-- 在条件队列里的线程是已经在对应的条件上挂起了，等待着被signal唤醒，然后去争锁。
+- 调用`signalAll()`方法的线程本身是已经持有了锁，现在准备释放锁了；
+- 在条件队列里的线程是已经在对应的条件上挂起了，等待着被`signal()`唤醒，然后去争锁。
 
 signalAll源码：
-- 将条件队列清空（只是令lastWaiter = firstWaiter = null，队列中的节点和连接关系仍然还存在）
+- 将条件队列清空（只是令`lastWaiter = firstWaiter = null`，队列中的节点和连接关系仍然还存在）
 - 将条件队列中的头节点取出，使之成为孤立节点(nextWaiter,prev,next属性都为null)
 - 如果该节点处于被Cancelled了的状态，则直接跳过该节点（由于是孤立节点，则会被GC回收）
 - 如果该节点处于正常状态，则通过enq方法将它添加到sync queue的末尾
 - 判断是否需要将该节点唤醒(包括设置该节点的前驱节点的状态为SIGNAL)，如有必要，直接唤醒该节点
 - 重复2-5，直到整个条件队列中的节点都被处理完
-```
+```java
 public final void signalAll() {
     if (!isHeldExclusively())
         throw new IllegalMonitorStateException();
@@ -309,13 +311,13 @@ public final void signalAll() {
 首先，与调用notify时线程必须是已经持有了监视器锁类似，在调用condition的signal方法时，线程也必须是已经持有了lock锁：
 
 通过`isHeldExclusively`方法来实现,该方法由继承AQS的子类来实现，例如，`ReentrantLock`对该方法的实现为：
-```
+```java
 protected final boolean isHeldExclusively() {
     return getExclusiveOwnerThread() == Thread.currentThread();
 }
 ```
 接下来先通过firstWaiter是否为空判断条件队列是否为空，如果条件队列不为空，则调用doSignalAll方法：
-```
+```java
 private void doSignalAll(Node first) {
     lastWaiter = firstWaiter = null;
     do {
@@ -327,7 +329,7 @@ private void doSignalAll(Node first) {
 }
 ```
 通过`lastWaiter = firstWaiter = null`;将整个条件队列清空，然后通过一个do-while循环，将原先的条件队列里面的节点一个一个拿出来(令nextWaiter = null)，再通过`transferForSignal`方法一个一个添加到`sync queue`的末尾：
-```
+```java
 final boolean transferForSignal(Node node) {
     //如果该节点在调用signal方法前已经被取消了，则直接跳过这个节点
     if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
@@ -345,7 +347,7 @@ final boolean transferForSignal(Node node) {
 signal()方法只会唤醒一个节点，对于AQS的实现来说，就是唤醒条件队列中第一个没有被Cancel的节点。
 
 signal源码
-```
+```java
 public final void signal() {
     if (!isHeldExclusively())
         throw new IllegalMonitorStateException();

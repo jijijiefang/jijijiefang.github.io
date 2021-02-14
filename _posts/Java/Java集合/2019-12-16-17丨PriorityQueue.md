@@ -26,7 +26,7 @@ provided at queue construction time, depending on which constructor is used.  A 
 
 ### 属性
 
-```
+```java
     //默认容量
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
     //储存元素的地方
@@ -44,7 +44,7 @@ provided at queue construction time, depending on which constructor is used.  A 
 4. modCount，修改次数，有这个属性表示PriorityQueue是fast-fail的；
 
 ### 构造方法
-```
+```java
     //默认容量，自然排序构造
     public PriorityQueue() {
         this(DEFAULT_INITIAL_CAPACITY, null);
@@ -119,7 +119,7 @@ provided at queue construction time, depending on which constructor is used.  A 
 ### 入队
 入队有两个方法，add(E e)和offer(E e)，两者是一致的，add(E e)也是调用的offer(E e)。
 
-```
+```java
     public boolean add(E e) {
         return offer(e);
     }
@@ -191,7 +191,7 @@ provided at queue construction time, depending on which constructor is used.  A 
 
 ### 扩容
 
-```
+```java
     private void grow(int minCapacity) {
         int oldCapacity = queue.length;
         // Double size if small; else grow by 50%
@@ -215,7 +215,7 @@ provided at queue construction time, depending on which constructor is used.  A 
 ```
 ### 出队
 出队有两个方法，remove()和poll()，remove()也是调用的poll()，只是没有元素的时候抛出异常。
-```
+```java
     //AbstractQueue.remove()
     public E remove() {
         //调用poll弹出队首元素
@@ -282,7 +282,7 @@ provided at queue construction time, depending on which constructor is used.  A 
 ### 取队首元素
 队首元素有两个方法，element()和peek()，element()也是调用的peek()，只是没取到元素时抛出异常。
 
-```
+```java
     //AbstractQueue.element()
     public E element() {
         E x = peek();
@@ -297,9 +297,9 @@ provided at queue construction time, depending on which constructor is used.  A 
 ```
 
 ## 总结
-1. PriorityQueue是一个小顶堆；
-2. PriorityQueue是非线程安全的；
-3. PriorityQueue不是有序的，只有堆顶存储着最小的元素；
+1. `PriorityQueue`是一个小顶堆；
+2. `PriorityQueue`是非线程安全的；
+3. `PriorityQueue`不是有序的，只有堆顶存储着最小的元素；
 4. 入队就是堆的插入元素的实现；
 5. 出队就是堆的删除元素的实现；
 

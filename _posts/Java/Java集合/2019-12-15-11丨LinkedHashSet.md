@@ -22,7 +22,7 @@ LinkedHashSet是一个有序的HashSet。
 
 ## 源码
 ### 构造方法
-```
+```java
 public class LinkedHashSet<E>
     extends HashSet<E>
     implements Set<E>, Cloneable, java.io.Serializable {
@@ -54,13 +54,13 @@ public class LinkedHashSet<E>
 }
 ```
 HashSet的构造方法，使用LinkedHashMap实现，用于LinkedHashSet。
-```
+```java
     HashSet(int initialCapacity, float loadFactor, boolean dummy) {
         map = new LinkedHashMap<>(initialCapacity, loadFactor);
     }
 ```
 
 ## 总结
-1. LinkedHashSet的底层使用LinkedHashMap存储元素；
-2. LinkedHashSet是有序的，它是按照插入的顺序排序的；
-3. LinkedHashSet不支持按访问顺序对元素排序的（因为accessOrder是false）；
+1. `LinkedHashSet`的底层使用`LinkedHashMap`存储元素；
+2. `LinkedHashSet`是有序的，它是按照插入的顺序排序的；
+3. `LinkedHashSet`不支持按访问顺序对元素排序的（因为accessOrder是false）；

@@ -7,32 +7,34 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # ConcurrentHashMap
 ## 问题
-1. ConcurrentHashMap的数据结构？
-2. ConcurrentHashMap是怎么解决并发安全问题？
-3. ConcurrentHashMap使用了哪些锁？
-4. ConcurrentHashMap的扩容？
-5. ConcurrentHashMap是否是强一致性的？
+1. `ConcurrentHashMap`的数据结构？
+2. `ConcurrentHashMap`是怎么解决并发安全问题？
+3. `ConcurrentHashMap`使用了哪些锁？
+4. `ConcurrentHashMap`的扩容？
+5. `ConcurrentHashMap`是否是强一致性的？
 
 ## 简介
 >ConcurrentHashMap是HashMap的线程安全版本，内部也是使用（数组 + 链表 + 红黑树）的结构来存储元素。相比于同样线程安全的HashTable来说，效率等各方面都有极大地提高。
 
 ![image](https://s2.ax1x.com/2019/12/11/QrsfbD.png)
 
-ConcurrentHashMap、HashMap和HashTable的区别：
-- HashMap 是非线程安全的哈希表，常用于单线程程序中。
-- Hashtable 是线程安全的哈希表，由于是通过内置锁 synchronized 来保证线程安全，在资源争用比较高的环境下，Hashtable 的效率比较低。
-- ConcurrentHashMap是一个支持并发操作的线程安全的HashMap，但是他不允许存储空key或value。使用CAS+synchronized来保证并发安全，在并发访问时不需要阻塞线程，所以效率是比Hashtable 要高的。
+`ConcurrentHashMap`、`HashMap`和`HashTable`的区别：
+
+- `HashMap` 是非线程安全的哈希表，常用于单线程程序中。
+- `Hashtable` 是线程安全的哈希表，由于是通过内置锁 `synchronized` 来保证线程安全，在资源争用比较高的环境下，Hashtable 的效率比较低。
+- `ConcurrentHashMap`是一个支持并发操作的线程安全的`HashMap`，但是他不允许存储空key或value。使用CAS+synchronized来保证并发安全，在并发访问时不需要阻塞线程，所以效率是比Hashtable 要高的。
 
 
 ## 源码
 
 ### 属性
-ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
-```
+`ConcurrentHashMap`的属性基本与HashMap的相同，多出了一些属性。
+
+```java
     //最大容量为2的30次方
     private static final int MAXIMUM_CAPACITY = 1 << 30;
     //默认初始容量16-必须为2的幂
@@ -96,14 +98,14 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
 ### 新增
 ####  put(K key, V value)
 
-```
+```java
     public V put(K key, V value) {
         return putVal(key, value, false);
     }
 ```
 #### putVal(K key, V value, boolean onlyIfAbsent)
 
-```
+```java
     final V putVal(K key, V value, boolean onlyIfAbsent) {
         //ConcurrentHashMap的key和value都不能为null
         if (key == null || value == null) throw new NullPointerException();
@@ -180,7 +182,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
     }
 ```
 #### initTable()
-```
+```java
     //初始化数组
     private final Node<K,V>[] initTable() {
         Node<K,V>[] tab; int sc;
@@ -210,7 +212,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
     }
 ```
 #### helpTransfer(Node<K,V>[] tab, Node<K,V> f)
-```
+```java
     //帮助转移节点
     final Node<K,V>[] helpTransfer(Node<K,V>[] tab, Node<K,V> f) {
         Node<K,V>[] nextTab; int sc;
@@ -235,7 +237,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
     }
 ```
 #### treeifyBin(Node<K,V>[] tab, int index)
-```
+```java
     //扩容或转化为树节点
     private final void treeifyBin(Node<K,V>[] tab, int index) {
         Node<K,V> b; int n, sc;
@@ -264,7 +266,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
     }
 ```
 #### tryPresize(int size)
-```
+```java
     //尝试扩容
     private final void tryPresize(int size) {
         int c = (size >= (MAXIMUM_CAPACITY >>> 1)) ? MAXIMUM_CAPACITY :
@@ -311,7 +313,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
 ```
 #### transfer(Node<K,V>[] tab, Node<K,V>[] nextTab)
 移动和/或复制每个节点到新表
-```
+```java
     private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
         int n = tab.length, stride;
         //数组长度/8/CPU数（最小为16）
@@ -493,7 +495,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
 
 #### addCount(long x, int check)
 每次添加元素后，元素数量加1，并判断是否达到扩容门槛，达到了则进行扩容或协助扩容。
-```
+```java
     private final void addCount(long x, int check) {
         CounterCell[] as; long b, s;
         // 把数组的大小存储根据不同的线程存储到不同的段上（也是分段锁的思想）
@@ -559,14 +561,14 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
 
 #### remove(Object key)
 根据key删除元素。
-```
+```java
     public V remove(Object key) {
         return replaceNode(key, null, null);
     }
 ```
 #### replaceNode(Object key, V value, Object cv)
 
-```
+```java
     final V replaceNode(Object key, V value, Object cv) {
         int hash = spread(key.hashCode());
         for (Node<K,V>[] tab = table;;) {
@@ -662,7 +664,7 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
 
 #### get(Object key)
 根据key获取元素value
-```
+```java
     public V get(Object key) {
         Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
         //计算数组下标
@@ -689,16 +691,16 @@ ConcurrentHashMap的属性基本与HashMap的相同，多出了一些属性。
 ```
 
 ## 总结
-1. ConcurrentHashMap是HashMap的线程安全版本；
-2. ConcurrentHashMap采用（数组 + 链表 + 红黑树）的结构存储元素；
-3. ConcurrentHashMap相比于同样线程安全的HashTable，效率要高很多；
-4. ConcurrentHashMap采用的锁有 synchronized，CAS，自旋锁，分段锁，volatile等；
-5. ConcurrentHashMap中没有threshold和loadFactor这两个字段，而是采用sizeCtl来控制；
+1. `ConcurrentHashMap`是`HashMap`的线程安全版本；
+2. `ConcurrentHashMap`采用（数组 + 链表 + 红黑树）的结构存储元素；
+3. `ConcurrentHashMap`相比于同样线程安全的`HashTable`，效率要高很多；
+4. `ConcurrentHashMap`采用的锁有 synchronized，CAS，自旋锁，分段锁，volatile等；
+5. `ConcurrentHashMap`中没有threshold和loadFactor这两个字段，而是采用sizeCtl来控制；
 6. 更新操作时如果正在进行扩容，当前线程协助扩容；
 7. 更新操作会采用synchronized锁住当前桶的第一个元素，这是分段锁的思想；
 8. 整个扩容过程都是通过CAS控制sizeCtl这个字段来进行的；
 9. 迁移完元素的桶会放置一个ForwardingNode节点，以标识该桶迁移完毕；
-10. 元素个数的存储也是采用的分段思想，类似于LongAdder的实现；
+10. 元素个数的存储也是采用的分段思想，类似于`LongAdder`的实现；
 11. 获取元素个数是把所有的段（包括baseCount和CounterCell）相加起来得到的；
-12. 查询操作是不会加锁的，所以ConcurrentHashMap不是强一致性的；
-13. ConcurrentHashMap中不能存储key或value为null的元素；
+12. 查询操作是不会加锁的，所以`ConcurrentHashMap`不是强一致性的；
+13. `ConcurrentHashMap`中不能存储key或value为null的元素；

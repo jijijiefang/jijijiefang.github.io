@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # ArrayBlockingQueue
 
@@ -28,7 +28,7 @@ Java注释
 ## 源码
 
 ### 属性
-```
+```java
     //底层储存元素的数组
     final Object[] items;
     //取元素的索引
@@ -50,7 +50,7 @@ Java注释
 
 ### 构造方法
 
-```
+```java
     //根据指定容量和默认非公平构造
     public ArrayBlockingQueue(int capacity) {
         this(capacity, false);
@@ -96,7 +96,7 @@ Java注释
 
 #### add(E e)
 
-```
+```java
     //调用AbstractQueue.add(),调用Queue.offer()
     //其实是ArrayBlockingQueue.offer(E e)
     public boolean add(E e) {
@@ -113,7 +113,7 @@ Java注释
 
 #### offer(E e)
 
-```
+```java
     public boolean offer(E e) {
         //元素不能为null
         checkNotNull(e);
@@ -137,7 +137,7 @@ Java注释
 ```
 #### put(E e)
 
-```
+```java
     public void put(E e) throws InterruptedException {
         //元素不能为null
         checkNotNull(e);
@@ -158,7 +158,7 @@ Java注释
 ```
 
 #### offer(E e, long timeout, TimeUnit unit)
-```
+```java
     public boolean offer(E e, long timeout, TimeUnit unit)
         throws InterruptedException {
         //元素不能为null
@@ -187,7 +187,7 @@ Java注释
 
 #### enqueue(E x)
 私有入队方法，获取锁后使用
-```
+```java
     private void enqueue(E x) {
         final Object[] items = this.items;
         items[putIndex] = x;
@@ -209,7 +209,7 @@ Java注释
 
 #### remove()
 
-```
+```java
     //AbstractQueue.remove()
     public E remove() {
         //调用poll()方法出队
@@ -223,7 +223,7 @@ Java注释
 ```
 #### poll()
 
-```
+```java
     public E poll() {
         final ReentrantLock lock = this.lock;
         //加锁
@@ -238,7 +238,7 @@ Java注释
 ```
 #### take()
 
-```
+```java
     public E take() throws InterruptedException {
         final ReentrantLock lock = this.lock;
         //可中断锁
@@ -256,7 +256,7 @@ Java注释
 ```
 #### poll(long timeout, TimeUnit unit)
 
-```
+```java
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
@@ -279,7 +279,7 @@ Java注释
 ```
 #### dequeue()
 私有出队方法，获取锁后调用。
-```
+```java
     private E dequeue() {
         final Object[] items = this.items;
         @SuppressWarnings("unchecked")
@@ -301,8 +301,8 @@ Java注释
 4. `poll(timeout, unit)`时如果队列为空则阻塞等待一段时间后如果还为空就返回null；
 
 ## 总结
-1. ArrayBlockingQueue不需要扩容，初始化时指定容量，并循环利用数组；
-2. ArrayBlockingQueue利用takeIndex和putIndex循环利用数组；
+1. `ArrayBlockingQueue`不需要扩容，初始化时指定容量，并循环利用数组；
+2. `ArrayBlockingQueue`利用takeIndex和putIndex循环利用数组；
 3. 入队和出队各定义了四组方法为满足不同的用途；
 4. 利用重入锁和两个条件保证并发安全；
 

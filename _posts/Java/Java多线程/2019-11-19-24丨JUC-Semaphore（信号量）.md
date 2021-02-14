@@ -19,17 +19,17 @@ However, no actual permit objects are used; the {@code Semaphore} just
 keeps a count of the number available and acts accordingly
 
 翻译：
-- Semaphore是一个计数信号量。
-- 从概念上理解，Semaphore包含一组许可证。
-- 如果有需要的话，每个acquire()方法都会阻塞，直到获取一个可用的许可证。
-- 每个release()方法都会释放持有许可证的线程，并且归还Semaphore一个可用的许可证。
-- 然而，实际上并没有真实的许可证对象供线程使用，Semaphore只是对可用的数量进行管理维护
+- `Semaphore`是一个计数信号量。
+- 从概念上理解，`Semaphore`包含一组许可证。
+- 如果有需要的话，每个`acquire()`方法都会阻塞，直到获取一个可用的许可证。
+- 每个`release()`方法都会释放持有许可证的线程，并且归还`Semaphore`一个可用的许可证。
+- 然而，实际上并没有真实的许可证对象供线程使用，`Semaphore`只是对可用的数量进行管理维护
 
 ## 原理
 ### 类图
 ![Semaphore](https://s1.ax1x.com/2019/11/19/MgxPqe.png)
 ### 使用
-```
+```java
     //初始化5个许可证
     Semaphore semaphore = new Semaphore(5);
     //获取一个许可
@@ -39,11 +39,11 @@ keeps a count of the number available and acts accordingly
 ```
 ## 源码
 ### 构造函数
-Semaphore提供了两个构造函数：
+`Semaphore`提供了两个构造函数：
 
-- Semaphore(int permits) ：创建具有给定的许可数和非公平的 Semaphore。
-- Semaphore(int permits, boolean fair) ：创建具有给定的许可数和给定的公平设置的 Semaphore。
-```
+- `Semaphore(int permits)` ：创建具有给定的许可数和非公平的 Semaphore。
+- `Semaphore(int permits, boolean fair)` ：创建具有给定的许可数和给定的公平设置的 Semaphore。
+```java
     //默认非公平
     public Semaphore(int permits) {
         sync = new NonfairSync(permits);
@@ -62,22 +62,24 @@ Semaphore提供了两个构造函数：
 信号量获取的方法分别是:
 acquire方法| 本质调用
 ---|---
-acquire()| sync.acquireSharedInterruptibly(1)
-acquire(int permits) | sync.acquireSharedInterruptibly(permits)
-acquireUninterruptibly()|sync.acquireShared(1)
-acquireUninterruptibly(int permits)	|sync.acquireShared(permits);
+`acquire()`| `sync.acquireSharedInterruptibly(1)` 
+`acquire(int permits)` | `sync.acquireSharedInterruptibly(permits)` 
+`acquireUninterruptibly()`|`sync.acquireShared(1)`
+`acquireUninterruptibly(int permits)`	|`sync.acquireShared(permits);`
 
 `acquire()`方法就相当于`AQS.acquireShared(int arg)`和`AQS.acquireSharedInterruptibly(int arg)`，`tryAcquireShared(arg)`由子类实现，是主要差异。
 
 #### 非公平锁
-Semaphore.NonfairSync.tryAcquireShared()源码：
-```
+`Semaphore.NonfairSync#tryAcquireShared()`源码：
+
+```java
     protected int tryAcquireShared(int acquires) {
         return nonfairTryAcquireShared(acquires);
     }
 ```
-Semaphore.Sync.nonfairTryAcquireShared()源码：
-```
+`Semaphore.Sync#nonfairTryAcquireShared()`源码：
+
+```java
     //自旋+CAS，返回剩余许可数
     final int nonfairTryAcquireShared(int acquires) {
         for (;;) {
@@ -101,8 +103,9 @@ Semaphore.Sync.nonfairTryAcquireShared()源码：
     }    
 ```
 #### 公平锁
-Semaphore.FairSync.tryAcquireShared()源码：
-```
+`Semaphore.FairSync#tryAcquireShared()`源码：
+
+```java
     //与公平锁相比多了判断自己前边是否存线程
     protected int tryAcquireShared(int acquires) {
         for (;;) {
@@ -117,22 +120,25 @@ Semaphore.FairSync.tryAcquireShared()源码：
     }
 ```
 ### 信号量释放
-Semaphore.release()源码：
-```
+`Semaphore.release()`源码：
+
+```java
     public void release() {
         sync.releaseShared(1);
     }
 ```
-Semaphore.release(int permits) 源码
-```
+`Semaphore.release(int permits)` 源码
+
+```java
     public void release(int permits) {
         if (permits < 0) throw new IllegalArgumentException();
         sync.releaseShared(permits);
     }
 ```
 `release()`和`release(int permits)`调用的是`AQS.releaseShared()`,`tryReleaseShared`由子类`Sync`实现。
-Semaphore.Sync.tryReleaseShared()源码：
-```
+`Semaphore.Sync#tryReleaseShared()`源码：
+
+```java
     //释放信号量把释放的许可加回
     protected final boolean tryReleaseShared(int releases) {
         for (;;) {
@@ -147,7 +153,7 @@ Semaphore.Sync.tryReleaseShared()源码：
 ```
 ### tryAcquire
 尝试获取许可，返回是否成功，不会加入队列阻塞等待，源码：
-```
+```java
     public boolean tryAcquire() {   
         //调用非公平获取许可
         return sync.nonfairTryAcquireShared(1) >= 0;
@@ -162,14 +168,15 @@ Semaphore.Sync.tryReleaseShared()源码：
 ```
 ### reducePermits
 减少指定的许可，不会进入队列阻塞等待
-```
+```java
     protected void reducePermits(int reduction) {
         if (reduction < 0) throw new IllegalArgumentException();
         sync.reducePermits(reduction);
     }
 ```
-Semaphore.Sync.reducePermits()源码
-```
+`Semaphore.Sync#reducePermits()`源码
+
+```java
         final void reducePermits(int reductions) {
             for (;;) {
                 int current = getState();
@@ -183,13 +190,14 @@ Semaphore.Sync.reducePermits()源码
 ```
 ### drainPermits
 将剩下的许可一次性消耗光，并且返回所消耗的许可数量。
-```
+```java
     public int drainPermits() {
         return sync.drainPermits();
     }
 ```
-Semaphore.Sync.drainPermits()源码
-```
+`Semaphore.Sync#drainPermits()`源码
+
+```java
     final int drainPermits() {
         for (;;) {
             int current = getState();
@@ -199,7 +207,7 @@ Semaphore.Sync.drainPermits()源码
     }
 ```
 ## 示例
-```
+```java
 public class SemaphoreTest {
     public static void main(String[] args) {
         Parking parking = new Parking(2);

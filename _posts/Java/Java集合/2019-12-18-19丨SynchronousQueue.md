@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # SynchronousQueue
 ## 简介
@@ -27,7 +27,7 @@ Java注释
 
 ### 属性
 
-```
+```java
     //CPU核数
     static final int NCPUS = Runtime.getRuntime().availableProcessors();
     //有超时的情况自旋多少次，当CPU数量小于2的时候不自旋
@@ -43,14 +43,14 @@ Java注释
 
 #### Transferer<E>
 Transferer抽象类，主要定义了一个transfer方法用来传输元素。
-```
+```java
     abstract static class Transferer<E> {
         abstract E transfer(E e, boolean timed, long nanos);
     }
 ```
 #### TransferQueue<E>
 以队列方式实现的Transferer。
-```
+```java
 static final class TransferQueue<E> extends Transferer<E> {
     //队列节点
     static final class QNode {
@@ -73,7 +73,7 @@ static final class TransferQueue<E> extends Transferer<E> {
 ```
 #### TransferStack<E>
 以栈方式实现的Transferer。
-```
+```java
 static final class TransferStack<E> extends Transferer<E> {
     //消费者（请求数据的）
     static final int REQUEST    = 0;
@@ -106,14 +106,14 @@ static final class TransferStack<E> extends Transferer<E> {
 ### 构造方法
 #### SynchronousQueue()
 无参构造方法，默认非公平。
-```
+```java
     public SynchronousQueue() {
         this(false);
     }
 ```
 #### SynchronousQueue(boolean fair)
 根据传入是否公平构造，公平模式是队列，非公平模式的是栈。
-```
+```java
     public SynchronousQueue(boolean fair) {
         transferer = fair ? new TransferQueue<E>() : new TransferStack<E>();
     }
@@ -122,7 +122,7 @@ static final class TransferStack<E> extends Transferer<E> {
 
 #### add(E e)
 添加元素成功返回true，失败抛异常。
-```
+```java
     public boolean add(E e) {
         if (offer(e))
             return true;
@@ -132,7 +132,7 @@ static final class TransferStack<E> extends Transferer<E> {
 ```
 #### offer(E e)
 添加元素成功返回true，否则返回false。
-```
+```java
     public boolean offer(E e) {
         if (e == null) throw new NullPointerException();
         return transferer.transfer(e, true, 0) != null;
@@ -140,7 +140,7 @@ static final class TransferStack<E> extends Transferer<E> {
 ```
 #### put(E e)
 添加元素失败，线程中断。
-```
+```java
     public void put(E e) throws InterruptedException {
         if (e == null) throw new NullPointerException();
         //三个参数分别是：传输的元素，是否需要超时，超时的时间
@@ -153,7 +153,7 @@ static final class TransferStack<E> extends Transferer<E> {
 ```
 #### offer(E e, long timeout, TimeUnit unit)
 
-```
+```java
     public boolean offer(E e, long timeout, TimeUnit unit)
         throws InterruptedException {
         if (e == null) throw new NullPointerException();
@@ -167,7 +167,7 @@ static final class TransferStack<E> extends Transferer<E> {
 ### 出队
 
 #### remove()
-```
+```java
     public E remove() {
         E x = poll();
         if (x != null)
@@ -177,13 +177,13 @@ static final class TransferStack<E> extends Transferer<E> {
     }
 ```
 #### poll()
-```
+```java
     public E poll() {
         return transferer.transfer(null, true, 0);
     }
 ```
 #### poll(long timeout, TimeUnit unit)
-```
+```java
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
         E e = transferer.transfer(null, true, unit.toNanos(timeout));
         if (e != null || !Thread.interrupted())
@@ -192,7 +192,7 @@ static final class TransferStack<E> extends Transferer<E> {
     }
 ```
 #### take()
-```
+```java
     public E take() throws InterruptedException {
         //三个参数分别是：null，是否需要超时，超时的时间
         //第一个参数为null表示是消费者，要取元素
@@ -208,7 +208,7 @@ static final class TransferStack<E> extends Transferer<E> {
 
 ### Transferer<E>.transfer
 transfer()方法同时实现了取元素和放元素的功能。
-```
+```java
     //e为null表示是消费者，要取元素；否则是生产者，e是生产的元素
     abstract E transfer(E e, boolean timed, long nanos);
 ```
@@ -217,7 +217,7 @@ transfer()方法同时实现了取元素和放元素的功能。
 1. 如果显然是空的或已经包含相同模式的节点，尝试将节点压入堆栈并等待匹配，返回它，如果取消则返回null；
 2. 如果显然包含互补模式的节点，则尝试将满足要求的节点压入堆栈，将与相应的等待节点进行匹配，从堆栈中弹出两者，然后返回匹配项。由于其他线程正在执行操作3，因此实际上可能不需要匹配或取消链接：
 3. 如果栈顶已经包含另一个充实的节点，请通过执行其match和/或pop操作来帮助它，然后继续。帮助的代码本质上与实现相同，只是不返回该项目。
-```
+```java
     E transfer(E e, boolean timed, long nanos) {
 
         SNode s = null; // constructed/reused as needed
@@ -364,7 +364,7 @@ transfer()方法同时实现了取元素和放元素的功能。
 基本算法是循环尝试执行以下两个操作之一：
 1. 如果队列显然是空的或持有相同模式的节点，请尝试将节点添加到等待者的队列中，等待被实现（或取消）并返回匹配项。
 2. 如果队列显然包含等待项，并且此调用是互补模式，请尝试通过CAS 等待节点的item字段并将其出队，然后返回匹配项来实现。
-```
+```java
     E transfer(E e, boolean timed, long nanos) {
 
         QNode s = null; // constructed/reused as needed
@@ -435,7 +435,7 @@ transfer()方法同时实现了取元素和放元素的功能。
     }
 ```
 ## 总结
-1. SynchronousQueue是java里的无缓冲队列，用于在两个线程之间直接移交元素；
-2. SynchronousQueue有两种实现方式，一种是公平（队列）方式，一种是非公平（栈）方式；
+1. `SynchronousQueue`是java里的无缓冲队列，用于在两个线程之间直接移交元素；
+2. `SynchronousQueue`有两种实现方式，一种是公平（队列）方式，一种是非公平（栈）方式；
 3. 栈方式中的节点有三种模式：生产者、消费者、正在匹配中；
 4. 栈方式的大致思路是如果栈顶元素跟自己一样的模式就入栈并等待被匹配，否则就匹配，匹配到了就返回；

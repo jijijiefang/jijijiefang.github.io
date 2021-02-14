@@ -12,15 +12,15 @@ tags:
 
 > Hash table based implementation of the <tt>Map</tt> interface, with <em>weak keys</em>.
 
-WeakHashMap是使用弱引用作为key来实现Map的散列表。当JVM GC时，如果key没有强引用存在时，下次操作会把对应Entry整个删除。
+`WeakHashMap`是使用弱引用作为key来实现Map的散列表。当JVM GC时，如果key没有强引用存在时，下次操作会把对应Entry整个删除。
 
 ## 原理
-WeakHashMap的存储结构是（数组 + 链表）来实现。
+`WeakHashMap`的存储结构是（数组 + 链表）来实现。
 
 ## 源码
 
 ### 属性
-```
+```java
     //默认初始容量
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
     //最大容量
@@ -41,8 +41,9 @@ WeakHashMap的存储结构是（数组 + 链表）来实现。
 ### 内部类
 
 #### Entry
-WeakHashMap内部的存储节点, 没有key属性。
-```
+`WeakHashMap`内部的存储节点, 没有key属性。
+
+```java
     private static class Entry<K,V> extends WeakReference<Object> implements Map.Entry<K,V> {
         V value;
         final int hash;
@@ -102,7 +103,7 @@ WeakHashMap内部的存储节点, 没有key属性。
 ```
 ### 构造函数
 
-```
+```java
     //无参构造方法
     public WeakHashMap() {
         this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
@@ -134,7 +135,7 @@ WeakHashMap内部的存储节点, 没有key属性。
 ```
 ### put(K key, V value)
 添加元素。
-```
+```java
     public V put(K key, V value) {
         //如果key为null，则新建一个Object对象作为key
         Object k = maskNull(key);
@@ -171,7 +172,7 @@ WeakHashMap内部的存储节点, 没有key属性。
 
 ### resize(int newCapacity)
 扩容方法。
-```
+```java
     void resize(int newCapacity) {
         Entry<K,V>[] oldTable = getTable();
         int oldCapacity = oldTable.length;
@@ -227,7 +228,7 @@ WeakHashMap内部的存储节点, 没有key属性。
 
 ### get(Object key)
 获取元素。
-```
+```java
     public V get(Object key) {
         Object k = maskNull(key);
         int h = hash(k);
@@ -250,7 +251,7 @@ WeakHashMap内部的存储节点, 没有key属性。
 
 ### remove(Object key)
 删除元素
-```
+```java
     public V remove(Object key) {
         Object k = maskNull(key);
         int h = hash(k);
@@ -286,7 +287,7 @@ WeakHashMap内部的存储节点, 没有key属性。
 
 ### expungeStaleEntries()
 移除失效元素
-```
+```java
     private void expungeStaleEntries() {
         //遍历引用队列
         for (Object x; (x = queue.poll()) != null; ) {
@@ -325,8 +326,8 @@ WeakHashMap内部的存储节点, 没有key属性。
 
 
 ## 总结
-1. WeakHashMap使用数组+链表的数据结构；
-2. WeakHashMap的key是弱引用，在GC时会被清除；
-3. 每次操作WeakHashMap，都会清除失效的key对应的Entry;
+1. `WeakHashMap`使用数组+链表的数据结构；
+2. `WeakHashMap`的key是弱引用，在GC时会被清除；
+3. 每次操作`WeakHashMap`，都会清除失效的key对应的Entry;
 4. 使用String作为key时，一定要使用new String()这样的方式声明key，才会失效，其它的基本类型的包装类型是一样的；
-5. WeakHashMap常用来作为缓存使用；
+5. `WeakHashMap`常用来作为缓存使用；

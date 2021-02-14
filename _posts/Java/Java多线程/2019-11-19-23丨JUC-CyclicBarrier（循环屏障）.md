@@ -30,7 +30,7 @@ are released.
 ![image](https://s2.ax1x.com/2019/11/18/MckRSA.png)
 ## 源码
 
-```
+```java
     //内部类
     private static class Generation {
         boolean broken = false;
@@ -118,7 +118,7 @@ are released.
     }
 ```
 #### await()
-```
+```java
     //不带超时
     public int await() throws InterruptedException, BrokenBarrierException {
         try {
@@ -212,7 +212,7 @@ are released.
     }
 ```
 ## 示例
-```
+```java
 public class CyclicBarrierTest {
     public static void main(String[] args) throws  Exception{
         CyclicBarrier barrier = new CyclicBarrier(5, () -> {

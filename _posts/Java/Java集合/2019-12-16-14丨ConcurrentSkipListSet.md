@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # ConcurrentSkipListSet
 
@@ -25,7 +25,7 @@ Java注释
 ![ConcurrentSkipListSet](https://s2.ax1x.com/2019/12/22/Qzwl38.png)
 
 ## 源码
-```
+```java
 public class ConcurrentSkipListSet<E>
     extends AbstractSet<E>
     implements NavigableSet<E>, Cloneable, java.io.Serializable {
@@ -230,16 +230,16 @@ public class ConcurrentSkipListSet<E>
 
 ```
 ## 总结
-1. ConcurrentSkipListSet底层是使用ConcurrentNavigableMap实现的；
-2. ConcurrentSkipListSet有序的，基于元素的自然排序或者通过比较器确定的顺序；
-3. ConcurrentSkipListSet是线程安全的；
+1. `ConcurrentSkipListSet`底层是使用`ConcurrentNavigableMap`实现的；
+2. `ConcurrentSkipListSet`有序的，基于元素的自然排序或者通过比较器确定的顺序；
+3. `ConcurrentSkipListSet`是线程安全的；
 
 
 Set|有序性|线程安全|底层实现|关键接口|特点
 ---|---|---|---|---|---
-HashSet|无|否|HashMap|无|简单
-LinkedHashSet|有|否|LinkedHashMap|无|插入顺序
-TreeSet|有|否|NavigableMap|NavigableSet|自然顺序
-CopyOnWriteArraySet|有|是|CopyOnWriteArrayList|无|插入顺序，读写分离
-ConcurrentSkipListSet|有|是|ConcurrentNavigableMap|NavigableSet|自然顺序
+`HashSet`|无|否|`HashMap`|无|简单
+`LinkedHashSet`|有|否|`LinkedHashMap`|无|插入顺序
+`TreeSet`|有|否|`NavigableMap`|`NavigableSet`|自然顺序
+`CopyOnWriteArraySet`|有|是|`CopyOnWriteArrayList`|无|插入顺序，读写分离
+`ConcurrentSkipListSet`|有|是|`ConcurrentNavigableMap`|`NavigableSet`|自然顺序
 

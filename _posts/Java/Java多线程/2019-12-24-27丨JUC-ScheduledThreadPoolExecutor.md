@@ -27,7 +27,7 @@ Java注释
 
 
 ### 属性
-```
+```java
     //如果应在关机时取消/取消定期任务，则为False。
     private volatile boolean continueExistingPeriodicTasksAfterShutdown;
     //如果应在关闭时取消非定期任务，则为False。
@@ -39,7 +39,7 @@ Java注释
 ```
 ### 内部类
 #### DelayedWorkQueue
-```
+```java
 //为存储周期或延迟任务定义的延迟队列，继承了 AbstractQueue，实现BlockingQueue 接口。它内部只允许存储 RunnableScheduledFuture 类型的任务。
 static class DelayedWorkQueue extends AbstractQueue<Runnable>
         implements BlockingQueue<Runnable> {
@@ -106,7 +106,7 @@ static class DelayedWorkQueue extends AbstractQueue<Runnable>
 }
 ```
 #### ScheduledFutureTask
-```
+```java
 private class ScheduledFutureTask<V>
             extends FutureTask<V> implements RunnableScheduledFuture<V> {
     //FIFO的任务编号
@@ -163,7 +163,7 @@ private class ScheduledFutureTask<V>
 }
 ```
 ##### 构造方法
-```
+```java
     ScheduledFutureTask(Callable<V> callable, long ns) {
         super(callable);
         this.time = ns;
@@ -185,7 +185,7 @@ private class ScheduledFutureTask<V>
 ```
 ##### compareTo(Delayed other)
 排序算法，首先按照time排序，time小的排在前面，大的排在后面，如果time相同，则使用sequenceNumber排序，小的排在前面，大的排在后面。
-```
+```java
     public int compareTo(Delayed other) {
         if (other == this) // compare zero if same object
             return 0;
@@ -207,7 +207,7 @@ private class ScheduledFutureTask<V>
 ```
 ### 构造方法
 
-```
+```java
     //设置核心线程数
     public ScheduledThreadPoolExecutor(int corePoolSize) {
         //调用ThreadPoolExecutor的构造方法
@@ -246,7 +246,7 @@ private class ScheduledFutureTask<V>
 
 #### schedule(Runnable command,long delay, TimeUnit unit)
 
-```
+```java
     public ScheduledFuture<?> schedule(Runnable command,
                                        long delay,
                                        TimeUnit unit) {
@@ -264,7 +264,7 @@ private class ScheduledFutureTask<V>
 ```
 #### schedule(Callable<V> callable,long delay,TimeUnit unit)
 
-```
+```java
     public <V> ScheduledFuture<V> schedule(Callable<V> callable,
                                            long delay,
                                            TimeUnit unit) {
@@ -279,7 +279,7 @@ private class ScheduledFutureTask<V>
 ```
 #### scheduleAtFixedRate(Runnable command,long initialDelay,long period,TimeUnit unit)
 
-```
+```java
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command,
                                                   long initialDelay,
                                                   long period,
@@ -304,7 +304,7 @@ private class ScheduledFutureTask<V>
 ```
 #### scheduleWithFixedDelay(Runnable command,long initialDelay,long delay,TimeUnit unit)
 
-```
+```java
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command,
                                                      long initialDelay,
                                                      long delay,
@@ -326,7 +326,7 @@ private class ScheduledFutureTask<V>
 ```
 #### delayedExecute(RunnableScheduledFuture<?> task)
 延时执行任务。
-```
+```java
     private void delayedExecute(RunnableScheduledFuture<?> task) {
         //线程池关闭了。执行拒绝策略
         if (isShutdown())
@@ -359,7 +359,7 @@ private class ScheduledFutureTask<V>
 
 ### 普通任务
 `execute`和`submit`当做普通任务执行。
-```
+```java
     public void execute(Runnable command) {
         schedule(command, 0, NANOSECONDS);
     }
@@ -374,7 +374,7 @@ private class ScheduledFutureTask<V>
     }    
 ```
 ## 示例
-```
+```java
 public class ScheduledThreadPoolExecutorTest {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);

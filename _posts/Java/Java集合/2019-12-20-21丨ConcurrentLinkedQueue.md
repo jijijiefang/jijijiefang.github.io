@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # ConcurrentLinkedQueue
 
@@ -28,14 +28,14 @@ Java注释
 
 ### 属性
 
-```
+```java
     //链表头节点
     private transient volatile Node<E> head;
     //链表尾节点
     private transient volatile Node<E> head;
 ```
 ### 内部类
-```
+```java
 private static class Node<E> {
     volatile E item;
     volatile Node<E> next;
@@ -43,7 +43,7 @@ private static class Node<E> {
 ```
 ### 构造方法
 
-```
+```java
     //无参构造方法
     public ConcurrentLinkedQueue() {
         head = tail = new Node<E>(null);
@@ -71,7 +71,7 @@ private static class Node<E> {
 ```
 ### 入队
 因为它不是阻塞队列，所以只有两个入队的方法，add(e)和offer(e)。
-```
+```java
     //插入此队列的尾部指定的元素。 由于队列是无界的，所以此方法不会抛出IllegalStateException或返回false 。
     public boolean add(E e) {
         return offer(e);
@@ -122,7 +122,7 @@ private static class Node<E> {
 
 ### 出队
 因为它不是阻塞队列，所以只有两个出队的方法，remove()和poll()。
-```
+```java
     public E remove() {
         E x = poll();
         if (x != null)

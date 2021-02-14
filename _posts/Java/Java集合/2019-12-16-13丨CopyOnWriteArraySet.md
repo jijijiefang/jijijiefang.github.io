@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # CopyOnWriteArraySet
 
@@ -34,7 +34,7 @@ tags:
 
 ## 源码
 
-```
+```java
 public class CopyOnWriteArraySet<E> extends AbstractSet<E>
         implements java.io.Serializable {
     private static final long serialVersionUID = 5457747651344034263L;
@@ -163,7 +163,7 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
 ```
 
 ## 总结
-1. CopyOnWriteArraySet底层使用CopyOnWriteArrayList实现；
-2. CopyOnWriteArraySet是有序的，因为底层其实是数组；
-3. CopyOnWriteArraySet是并发安全的，而且实现了读写分离；
-4. CopyOnWriteArraySet通过调用CopyOnWriteArrayList的addIfAbsent()方法来保证元素不重复；
+1. `CopyOnWriteArraySet`底层使用`CopyOnWriteArrayList`实现；
+2. `CopyOnWriteArraySet`是有序的，因为底层其实是数组；
+3. `CopyOnWriteArraySet`是并发安全的，而且实现了读写分离；
+4. `CopyOnWriteArraySet`通过调用`CopyOnWriteArrayList`的`addIfAbsent()`方法来保证元素不重复；

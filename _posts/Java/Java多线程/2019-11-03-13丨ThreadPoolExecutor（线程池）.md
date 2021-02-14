@@ -15,7 +15,7 @@ tags:
 
 
 ## 参数
-```
+```java
 public ThreadPoolExecutor(int corePoolSize,
                               int maximumPoolSize,
                               long keepAliveTime,
@@ -27,13 +27,13 @@ public ThreadPoolExecutor(int corePoolSize,
 
 参数名 | 作用
 ---|---
-corePoolSize| 核心线程池大小
-maximumPoolSize| 最大线程池大小
-keepAliveTime| 线程池中超过corePoolSize数目的空闲线程最大存活时间；可以allowCoreThreadTimeOut(true)使得核心线程空闲存活有效时间
-TimeUnit |keepAliveTime时间单位
-workQueue |阻塞任务队列
-threadFactory |线程工厂
-RejectedExecutionHandler| 当提交任务数超过maxmumPoolSize+workQueue之和时，任务会交给RejectedExecutionHandler来处理；
+`corePoolSize`| 核心线程池大小
+`maximumPoolSize`| 最大线程池大小
+`keepAliveTime`| 线程池中超过`corePoolSize`数目的空闲线程最大存活时间；可以`allowCoreThreadTimeOut(true)`使得核心线程空闲存活有效时间 
+`TimeUnit` |`keepAliveTime`时间单位
+`workQueue` |阻塞任务队列
+`threadFactory` |线程工厂
+`RejectedExecutionHandler`| 当提交任务数超过`maxmumPoolSize`+`workQueue`之和时，任务会交给`RejectedExecutionHandler`来处理； 
 
 ## 流程
 ![image](https://s2.ax1x.com/2019/11/02/KOSEPU.png)
@@ -560,4 +560,5 @@ ThreadPoolExecutor.getTask()以下情况会返回null，使Work线程退出：
     }
 ```
 shutdcown 和 shutdownNow的区别：
+
 - `shutdown` 会把当前池状态改为`SHUTDOWN`，表示还会继续运行池内已经提交的任务，然后中断所有的空闲工作线程 ；但 `shutdownNow` 直接把池状态改为`STOP`，也就是说不会再运行已存在的任务，然后会**中断所有工作线程**。

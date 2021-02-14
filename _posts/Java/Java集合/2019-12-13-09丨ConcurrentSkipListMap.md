@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # ConcurrentSkipListMap
 
@@ -24,7 +24,7 @@ tags:
 
 ![类图](https://s2.ax1x.com/2019/12/13/Q2Z6YQ.png)
 
-ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发的场景。
+`ConcurrentSkipListMap`是线程安全的有序的哈希表，适用于高并发的场景。
 
 ## 源码
 
@@ -36,7 +36,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
 
 #### Node<K,V>
 
-```
+```java
     //数据节点，单向链表结构
     static final class Node<K,V> {
         final K key;
@@ -58,7 +58,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
     }
 ```
 #### Index<K,V>
-```
+```java
     //索引节点
     static class Index<K,V> {
         final Node<K,V> node;
@@ -75,7 +75,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
 
 #### HeadIndex<K,V>
 
-```
+```java
     //头索引节点，继承自Index，并扩展level字段，用于记录索引的层级
     static final class HeadIndex<K,V> extends Index<K,V> {
         final int level;
@@ -88,7 +88,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
 
 ### 构造方法
 
-```
+```java
     //自然排序
     public ConcurrentSkipListMap() {
         this.comparator = null;
@@ -115,7 +115,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
 ```
 #### initialize()
 初始化方法，构造头索引节点，层级1，down和right都是null。
-```
+```java
     private void initialize() {
         keySet = null;
         entrySet = null;
@@ -127,7 +127,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
 ### 添加
 
 #### put(K key, V value)
-```
+```java
     public V put(K key, V value) {
         //空value校验
         if (value == null)
@@ -136,7 +136,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
     }
 ```
 #### doPut(K key, V value, boolean onlyIfAbsent)
-```
+```java
     private V doPut(K key, V value, boolean onlyIfAbsent) {
         Node<K,V> z;             // added node
         //key不能为null
@@ -418,7 +418,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
 ![image](https://s2.ax1x.com/2019/12/21/QvqOC6.png)
 
 ### 删除
-```
+```java
     public V remove(Object key) {
         return doRemove(key, null);
     }
@@ -518,7 +518,7 @@ ConcurrentSkipListMap是线程安全的有序的哈希表，适用于高并发�
 
 ### 查找
 
-```
+```java
     public V get(Object key) {
         return doGet(key);
     }

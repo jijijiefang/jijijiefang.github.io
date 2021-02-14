@@ -7,7 +7,7 @@ header-style: text
 tags:
     - Java集合
     - JUC
-    - 多线程
+    - Java多线程
 ---
 # LinkedTransferQueue
 
@@ -41,7 +41,7 @@ Java注释
 
 ### 属性
 
-```
+```java
     //是否多核处理器
     private static final boolean MP =
         Runtime.getRuntime().availableProcessors() > 1;
@@ -69,7 +69,7 @@ Java注释
 ```
 ### 内部类
 
-```
+```java
 static final class Node {
     //是否是数据节点（也就标识了是生产者还是消费者）
     final boolean isData;   // false if this is a request node
@@ -83,7 +83,7 @@ static final class Node {
 ```
 ### 构造方法
 
-```
+```java
     //无参构造方法
     public LinkedTransferQueue() {
     }
@@ -95,7 +95,7 @@ static final class Node {
 ```
 ### 入队
 四个方法都是一样的，使用异步的方式调用xfer()方法，传入的参数都一模一样。
-```
+```java
     //插入此队列的尾部指定的元素。 由于队列是无界的，所以此方法不会抛出IllegalStateException或返回false 。
     public boolean add(E e) {
         xfer(e, true, ASYNC, 0);
@@ -118,7 +118,7 @@ static final class Node {
 ```
 ### 出队
 出队的四个方法也是直接或间接的调用xfer()方法。
-```
+```java
     public E remove() {
         E x = poll();
         if (x != null)
@@ -147,7 +147,7 @@ static final class Node {
 ```
 ### tranfer操作
 
-```
+```java
     //立即返回
     public boolean tryTransfer(E e) {
         return xfer(e, true, NOW, 0) == null;
@@ -171,7 +171,7 @@ static final class Node {
 ```
 ### xfer(E e, boolean haveData, int how, long nanos)
 
-```
+```java
     //实现所有排队的方法
     //e:元素，如果为null是消费者
     //haveData:为true是生产者，false是消费者
@@ -250,7 +250,7 @@ static final class Node {
 
 ### tryAppend(Node s, boolean haveData)
 添加给定节点 s 到队列尾并返回 s 的前继节点，失败时（与其他不同模式线程竞争失败）返回null，没有前继节点返回自身。
-```
+```java
     private Node tryAppend(Node s, boolean haveData) {
         for (Node t = tail, p = t;;) {        // move p to last node and append
             Node n, u;                        // temps for reads of next & tail
@@ -293,7 +293,7 @@ static final class Node {
 
 ### awaitMatch(Node s, Node pred, E e, boolean timed, long nanos)
 当前操作为同步操作时，会调用awaitMatch方法阻塞等待匹配，成功返回匹配节点 item，失败返回给定参数e（s.item）。在等待期间如果线程被中断或等待超时，则取消匹配，并调用unsplice方法解除节点s和其前继节点的链接。
-```
+```java
     private E awaitMatch(Node s, Node pred, E e, boolean timed, long nanos) {
         //如果是有超时的，计算其超时时间
         final long deadline = timed ? System.nanoTime() + nanos : 0L;
@@ -349,7 +349,8 @@ static final class Node {
     }
 ```
 ### 对比
-LinkedTransferQueue与SynchronousQueue（公平模式）异同：
+`LinkedTransferQueue`与`SynchronousQueue`（公平模式）异同：
+
 1. 在java8中两者的实现方式基本一致，都是使用的双重队列；
 2. 前者完全实现了后者，但比后者更灵活；
 3. 后者不管放元素还是取元素，如果没有可匹配的元素，所在的线程都会阻塞；

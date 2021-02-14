@@ -22,12 +22,12 @@ tags:
 
 ![image](https://s2.ax1x.com/2019/12/03/QQAyQA.png)
 
-HashMap 底层的数据结构是：数组 + 链表 + 红黑树。LinkedHashMap继承自HashMap所以它的内部也是这种数据结构。另外它还实现了双向链表的结构存储所有元素。
+`HashMap` 底层的数据结构是：数组 + 链表 + 红黑树。`LinkedHashMap`继承自`HashMap`所以它的内部也是这种数据结构。另外它还实现了双向链表的结构存储所有元素。
 
 ## 源码
 
 ### 属性
-```
+```java
     //双向链表头结点
     transient LinkedHashMap.Entry<K,V> head;
     //双向链表尾结点
@@ -37,7 +37,7 @@ HashMap 底层的数据结构是：数组 + 链表 + 红黑树。LinkedHashMap�
     final boolean accessOrder;
 ```
 ### 内部类
-```
+```java
     //LinkedHashMap.Entry
     static class Entry<K,V> extends HashMap.Node<K,V> {
         //维护了元素的前置节点和后继节点
@@ -56,7 +56,7 @@ HashMap 底层的数据结构是：数组 + 链表 + 红黑树。LinkedHashMap�
 ```
 ### 构造方法
 不指定`accessOrder`的构造方法默认使用插入顺序存储元素。如果`accessOrder`传入true,则就实现了按访问顺序存储元素，这也是实现LRU缓存策略的关键。
-```
+```java
     //默认构造方法
     public LinkedHashMap() {
         super();
@@ -89,7 +89,7 @@ HashMap 底层的数据结构是：数组 + 链表 + 红黑树。LinkedHashMap�
 ```
 ### afterNodeInsertion(boolean evict)
 在节点插入之后做些什么，在HashMap中的putVal()方法中被调用。
-```
+```java
     void afterNodeInsertion(boolean evict) { // possibly remove eldest
         LinkedHashMap.Entry<K,V> first;
         if (evict && (first = head) != null && removeEldestEntry(first)) {
@@ -102,7 +102,7 @@ HashMap 底层的数据结构是：数组 + 链表 + 红黑树。LinkedHashMap�
 
 ### afterNodeAccess(Node<K,V> e)
 在节点访问之后被调用，主要在put()已经存在的元素或get()时被调用，如果accessOrder为true，把节点移动到双向链表的末尾。
-```
+```java
     void afterNodeAccess(Node<K,V> e) { // move node to last
         LinkedHashMap.Entry<K,V> last;
         //accessOrder为true且尾节点不为空
@@ -137,7 +137,7 @@ HashMap 底层的数据结构是：数组 + 链表 + 红黑树。LinkedHashMap�
 
 ### afterNodeRemoval(Node<K,V> e)
 HashMap.removeNode方法中调用，删除节点后所做操作。
-```
+```java
     void afterNodeRemoval(Node<K,V> e) { // unlink
         LinkedHashMap.Entry<K,V> p =
             (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
@@ -155,7 +155,7 @@ HashMap.removeNode方法中调用，删除节点后所做操作。
 ```
 ### get(Object key)
 返回元素的value或null,如果accessOrder为true,把访问的元素挪至链表尾节点。
-```
+```java
     public V get(Object key) {
         Node<K,V> e;
         if ((e = getNode(hash(key), key)) == null)
@@ -169,7 +169,7 @@ HashMap.removeNode方法中调用，删除节点后所做操作。
 ## 使用
 ### 实现LRU
 
-```
+```java
 class LruCache<K,V>  extends LinkedHashMap {
     private final int CACHE_SIZE;
 
@@ -188,10 +188,10 @@ class LruCache<K,V>  extends LinkedHashMap {
 }
 ```
 ## 总结
-1. LinkedHashMap继承自HashMap，具有HashMap的所有特性；
-2. LinkedHashMap内部维护了一个双向链表存储所有的元素；
-3. 如果accessOrder为false，按插入元素的顺序遍历元素；
-4. 如果accessOrder为true，按访问元素的顺序遍历元素,最近访问元素挪至链表尾节点；
-5. LinkedHashMap的实现非常精妙，很多方法都是在HashMap中留的钩子（Hook），直接实现这些Hook就可以实现对应的功能了，并不需要再重写put()等方法；
-6. 默认的LinkedHashMap并不会移除旧元素，如果需要移除旧元素，则需要重写removeEldestEntry()方法设定移除策略；
-7. LinkedHashMap可以用来实现LRU缓存淘汰策略；
+1. `LinkedHashMap`继承自`HashMap`，具有`HashMap`的所有特性；
+2. `LinkedHashMap`内部维护了一个双向链表存储所有的元素；
+3. 如果`accessOrder`为false，按插入元素的顺序遍历元素；
+4. 如果`accessOrder`为true，按访问元素的顺序遍历元素,最近访问元素挪至链表尾节点；
+5. `LinkedHashMap`的实现非常精妙，很多方法都是在`HashMap`中留的钩子（Hook），直接实现这些Hook就可以实现对应的功能了，并不需要再重写put()等方法；
+6. 默认的`LinkedHashMap`并不会移除旧元素，如果需要移除旧元素，则需要重写`removeEldestEntry()`方法设定移除策略；
+7. `LinkedHashMap`可以用来实现LRU缓存淘汰策略；

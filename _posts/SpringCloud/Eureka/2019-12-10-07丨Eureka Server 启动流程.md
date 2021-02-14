@@ -73,7 +73,8 @@ public class EurekaServerAutoConfiguration extends WebMvcConfigurerAdapter
 ## 5、EurekaServerAutoConfiguration
 `EurekaServerInitializerConfiguration` 实现了`SmartLifecycle.start`方法，在容器所有bean加载和初始化完毕执行。
 
-EurekaServerInitializerConfiguration.start()
+`EurekaServerInitializerConfiguration.start()`
+
 ```
 @Override
 public void start() {
@@ -99,7 +100,8 @@ public void start() {
 }
 ```
 ## 6、contextInitialized()
-EurekaServerBootstrap.contextInitialized()
+`EurekaServerBootstrap.contextInitialized()`
+
 ```
 public void contextInitialized(ServletContext context) {
    try {
