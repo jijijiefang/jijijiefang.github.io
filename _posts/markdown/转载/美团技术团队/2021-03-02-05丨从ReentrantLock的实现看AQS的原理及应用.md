@@ -6,8 +6,8 @@ author:     "jiefang"
 header-style: text
 tags:
     - 转载
-	- 美团技术团队
----
+    - 美团技术团队
+--------
 
 # [从ReentrantLock的实现看AQS的原理及应用](https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html)
 
