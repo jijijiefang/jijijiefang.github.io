@@ -146,7 +146,7 @@ The <em>tail</em> of the queue is that element that has been on the queue the sh
     }
 ```
 #### put(E e)
-添加元素，队列满，阻塞直到入队或被中断。
+添加元素，队列满，**阻塞**直到入队或被中断。
 ```java
     public void put(E e) throws InterruptedException {
         //非空判断

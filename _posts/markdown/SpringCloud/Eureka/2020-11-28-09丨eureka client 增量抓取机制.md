@@ -11,7 +11,7 @@ tags:
 # eureka client增量抓取机制
 ![eureka client 增量抓取注册表机](https://s3.ax1x.com/2020/11/28/D6Gux1.png)
 ## 每隔30S抓取注册表
-```
+```java
     private void initScheduledTasks() {
         //初始化抓取注册表定时任务
         if (clientConfig.shouldFetchRegistry()) {
@@ -36,7 +36,7 @@ tags:
         ...
 ```
 ## 增量抓取策略
-```
+```java
     private boolean fetchRegistry(boolean forceFullRegistryFetch) {
         Stopwatch tracer = FETCH_REGISTRY_TIMER.start();
 
@@ -80,14 +80,14 @@ tags:
 ## eureka server端查询增量数据
 `ApplicationsResource`中`getContainerDifferential`()方法为获取增量数据。使用`ALL_APPS_DELTA`从`readOnlyCacheMap`中获取数据，而`ALL_APPS_DELTA`的数据放入`readWriteCacheMap`时做区分。
 
-```
+```java
     Key cacheKey = new Key(Key.EntityType.Application,
             ResponseCacheImpl.ALL_APPS_DELTA,
             keyType, CurrentRequestVersion.get(), EurekaAccept.fromString(eurekaAccept), regions
     );
 ```
 readWriteCacheMap加载数据
-```
+```java
 private Value generatePayload(Key key) {
         Stopwatch tracer = null;
         try {
@@ -129,7 +129,7 @@ private Value generatePayload(Key key) {
 ## recentlyChangedQueue增量更新机制
 `recentlyChangedQueue`中存放新注册、下线等服务实例。在`Registry`构造时定义一个Timer定时任务，每隔**30S**查看服务实例变更记录，是否在队列中停留超过**180S**，如果超过就删除。这个queue只保留3分钟的服务实例变更记录。
 
-```
+```java
 private ConcurrentLinkedQueue<RecentlyChangedItem> recentlyChangedQueue = new ConcurrentLinkedQueue<RecentlyChangedItem>();
 //定时器执行每隔30S
 this.deltaRetentionTimer.schedule(getDeltaRetentionTask(),
@@ -156,7 +156,7 @@ private TimerTask getDeltaRetentionTask() {
 ```
 ## 增量更新合并至本地注册表
 
-```
+```java
 private void getAndUpdateDelta(Applications applications) throws Throwable {
     long currentUpdateGeneration = fetchRegistryGeneration.get();
 
@@ -248,7 +248,7 @@ private void updateDelta(Applications delta) {
 ```
 ## 对比hashcode
 增量更新合并至本地注册表后，计算hashcode与eureka server端返回的delta里的appsHashCode进行对比，如果不一样会重新从eureka server拉取全量注册表更新到本地缓存。
-```
+```java
 // There is a diff in number of instances for some reason
 if (!reconcileHashCode.equals(delta.getAppsHashCode()) || clientConfig.shouldLogDeltaDiff()) {
     reconcileAndLogDifference(delta, reconcileHashCode);  // this makes a remoteCall

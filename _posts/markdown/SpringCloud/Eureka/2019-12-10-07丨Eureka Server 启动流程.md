@@ -10,7 +10,7 @@ tags:
 ---
 # Eureka Server 启动流程
 ## 1、启动EurekaServer
-```
+```java
 @EnableEurekaServer
 @SpringBootApplication
 public class EurekaServerApplication {
@@ -21,7 +21,7 @@ public class EurekaServerApplication {
 ```
 ## 2、@EnableEurekaServer
 
-```
+```java
 @EnableDiscoveryClient
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -33,7 +33,7 @@ public @interface EnableEurekaServer {
 将配置类 `EurekaServerMarkerConfiguration` 加入spring 容器。
 
 ## 3、EurekaServerMarkerConfiguration
-```
+```java
 /**
  * 激活 EurekaServerAutoConfiguration 的开关
  */
@@ -55,7 +55,7 @@ org.springframework.cloud.netflix.eureka.server.EurekaServerAutoConfiguration
 真正的配置信息在 `EurekaServerAutoConfiguration` 中，`@ConditionalOnBean(EurekaServerMarkerConfiguration.Marker.class)` 只有存在 Marker 实例的时候，才会继续加载配置项，这也就要求必须有 `@EnableEurekaServer`注解，才能正常的启动。
 
 ## 4、EurekaServerAutoConfiguration
-```
+```java
 @Configuration
 @Import(EurekaServerInitializerConfiguration.class)
 @ConditionalOnBean(EurekaServerMarkerConfiguration.Marker.class)
@@ -75,7 +75,7 @@ public class EurekaServerAutoConfiguration extends WebMvcConfigurerAdapter
 
 `EurekaServerInitializerConfiguration.start()`
 
-```
+```java
 @Override
 public void start() {
    new Thread(new Runnable() {
@@ -102,7 +102,7 @@ public void start() {
 ## 6、contextInitialized()
 `EurekaServerBootstrap.contextInitialized()`
 
-```
+```java
 public void contextInitialized(ServletContext context) {
    try {
       //初始化运行环境
@@ -118,7 +118,7 @@ public void contextInitialized(ServletContext context) {
 ```
 
 #### EurekaServerBootstrap.initEurekaEnvironment()
-```
+```java
 protected void initEurekaEnvironment() throws Exception {
    log.info("Setting the eureka configuration..");
    //设置数据中心
@@ -148,7 +148,7 @@ protected void initEurekaEnvironment() throws Exception {
 }
 ```
 #### EurekaServerBootstrap.initEurekaServerContext()
-```
+```java
 protected void initEurekaServerContext() throws Exception {
    //向后兼容
    JsonXStream.getInstance().registerConverter(new V1AwareInstanceInfoConverter(),
@@ -170,7 +170,7 @@ protected void initEurekaServerContext() throws Exception {
 }
 ```
 #### PeerAwareInstanceRegistry.syncUp()
-```
+```java
 @Override
 public int syncUp() {
     int count = 0;
@@ -203,7 +203,7 @@ public int syncUp() {
 ```
 #### AbstractInstanceRegistry.register()
 注册新实例
-```
+```java
     public void register(InstanceInfo registrant, int leaseDuration, boolean isReplication) {
         try {
             read.lock();

@@ -13,12 +13,7 @@ tags:
 ## 简介
 
 官方定义：
->A synchronization aid that allows a set of threads to all wait for
-each other to reach a common barrier point.  CyclicBarriers are
-useful in programs involving a fixed sized party of threads that
-must occasionally wait for each other. The barrier is called
-<em>cyclic</em> because it can be re-used after the waiting threads
-are released.
+>A synchronization aid that allows a set of threads to all wait for each other to reach a common barrier point.  CyclicBarriers are useful in programs involving a fixed sized party of threads that must occasionally wait for each other. The barrier is called <em>cyclic</em> because it can be re-used after the waiting threads are released.
 
 翻译后，如下：
 - `CyclicBarrier`是一个同步辅助类，它允许一组线程相互等待直到所有线程都到达一个公共的屏障点。
@@ -246,6 +241,6 @@ public class CyclicBarrierTest {
 ![执行结果](https://s2.ax1x.com/2019/11/18/Mc8MlV.png)
 ## 总结
 - `CyclicBarrier`实现了类似`CountDownLatch`的逻辑，它可以使得一组线程之间相互等待，直到所有的线程都到齐了之后再继续往下执行。
-- `CyclicBarrier`基于条件队列和独占锁来实现，而非共享锁。
+- `CyclicBarrier`基于**条件队列和独占锁**来实现，**而非共享锁**。
 - `CyclicBarrier`可重复使用，在所有线程都到齐了一起通过后，将会开启新的一代。
 - `CyclicBarrier`所有互相等待的线程，要么一起通过barrier，要么一个都不要通过，如果有一个线程因为中断，失败或者超时而过早的离开了barrier，则该barrier会被broken掉，所有等待在该barrier上的线程都会抛出BrokenBarrierException（或者InterruptedException）。

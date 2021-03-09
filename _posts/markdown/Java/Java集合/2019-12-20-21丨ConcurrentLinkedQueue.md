@@ -121,6 +121,7 @@ private static class Node<E> {
 2. 如果尾部变化了，则重新获取尾部，再重试；
 
 ### 出队
+
 因为它不是阻塞队列，所以只有两个出队的方法，remove()和poll()。
 ```java
     public E remove() {

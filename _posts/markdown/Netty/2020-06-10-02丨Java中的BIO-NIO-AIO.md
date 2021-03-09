@@ -10,7 +10,7 @@ tags:
 # Java中的BIO->NIO->AIO
 Java中支持三种IO模型，分别是BIO、NIO和AIO。
 ## Java BIO
-Java中的BIO基于ServerSocket和Socket实现,服务端接收到一个连接就启动一个线程来处理这个连接的所有请求。
+Java中的BIO基于`ServerSocket`和`Socket`实现,服务端接收到一个连接就启动一个线程来处理这个连接的所有请求。
 ![Java BIO](https://s1.ax1x.com/2020/06/10/toH6Ug.png "Java BIO")
 
 ### 示例
@@ -44,7 +44,7 @@ public class BioTest {
 }
 ```
 ## Java NIO
-Java NIO基于多路复用IO模型，使用ServerSocketChannel、SocketChannel、Selector和Buffer缓冲区实现。
+Java NIO基于多路复用IO模型，使用`ServerSocketChannel`、`SocketChannel`、`Selector`和`Buffer`缓冲区实现。
 使用NIO多条连接的数据准备阶段会阻塞在select上，数据从内核空间拷贝到用户空间依然是阻塞的。
 ![Java NIO](https://s1.ax1x.com/2020/06/10/tob0JJ.png "Java NIO")
 
@@ -103,7 +103,7 @@ public class NioTest {
 }
 ```
 ## Java AIO
-使用异步IO则会在请求时立即返回，并在数据已准备且已拷贝到用户空间后进行回调处理，两个阶段都不会阻塞。基于AsynchronousServerSocketChannel、AsynchronousSocketChannel和Buffer缓冲区实现。
+使用异步IO则会在请求时立即返回，并在数据已准备且已拷贝到用户空间后进行回调处理，两个阶段都不会阻塞。基于`AsynchronousServerSocketChannel`、`AsynchronousSocketChannel`和`Buffer`缓冲区实现。
 
 ### 示例
 ```java

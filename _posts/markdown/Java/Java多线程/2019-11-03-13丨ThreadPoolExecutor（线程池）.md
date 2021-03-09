@@ -37,25 +37,25 @@ public ThreadPoolExecutor(int corePoolSize,
 
 ## 流程
 ![image](https://s2.ax1x.com/2019/11/02/KOSEPU.png)
-- 当线程池小于corePoolSize时，新提交任务将创建一个新线程执行任务，即使此时线程池中存在空闲线程。
-- 当线程池达到corePoolSize时，新提交任务将被放入workQueue中，等待线程池中任务调度执行
-- 当workQueue已满，且maximumPoolSize>corePoolSize时，新提交任务会创建新线程执行任务
-- 当提交任务数超过maximumPoolSize时，新提交任务由RejectedExecutionHandler处理
-- 当线程池中超过corePoolSize线程，空闲时间达到keepAliveTime时，关闭空闲线程
-- 当设置allowCoreThreadTimeOut(true)时，线程池中corePoolSize线程空闲时间达到keepAliveTime也将关闭
+- 当线程池小于`corePoolSize`时，新提交任务将创建一个新线程执行任务，即使此时线程池中存在空闲线程;
+- 当线程池达到`corePoolSize`时，新提交任务将被放入`workQueue`中，等待线程池中任务调度执行;
+- 当`workQueue`已满，且`maximumPoolSize`>`corePoolSize`时，新提交任务会创建新线程执行任务;
+- 当提交任务数超过`maximumPoolSize`时，新提交任务由`RejectedExecutionHandler`处理;
+- 当线程池中超过`corePoolSize`线程，空闲时间达到`keepAliveTime`时，关闭空闲线程;
+- 当设置`allowCoreThreadTimeOut(true)`时，线程池中`corePoolSize`线程空闲时间达到`keepAliveTime`也将关闭;
 
 ## 拒绝策略
-- **AbortPolicy**:默认策略，在需要拒绝任务时抛出RejectedExecutionException；
-- **DiscardPolicy**:也是丢弃任务，但是不抛出异常。 
-- **DiscardOldestPolicy**:丢弃队列中等待时间最长的任务，并执行当前提交的任务，如果线程池已经关闭，任务将被丢弃。
+- **AbortPolicy**:默认策略，在需要拒绝任务时抛出`RejectedExecutionException`；
+- **DiscardPolicy**:也是丢弃任务，但是不抛出异常;
+- **DiscardOldestPolicy**:丢弃队列中等待时间最长的任务，并执行当前提交的任务，如果线程池已经关闭，任务将被丢弃;
 - **CallerRunsPolicy**:直接在 execute 方法的调用线程中运行被拒绝的任务，如果线程池已经关闭，任务将被丢弃；
 
 ## 线程池状态
-- **RUNNING**:可以接收新的任务和队列任务
-- **SHUTDOWN**:不接收新的任务，但是会运行队列任务
-- **STOP**:不接收新任务，也不会运行队列任务，并且中断正在运行的任务
-- **TIDYING**:所有任务都已经终止，workerCount为0，当池状态为TIDYING时将会运行terminated()方法
-- **TERMINATED**:terminated函数完成执行
+- **RUNNING**:可以接收新的任务和队列任务；
+- **SHUTDOWN**:不接收新的任务，但是会运行队列任务；
+- **STOP**:不接收新任务，也不会运行队列任务，并且中断正在运行的任务；
+- **TIDYING**:所有任务都已经终止，**workerCount**为0，当池状态为**TIDYING**时将会运行`terminated()`方法；
+- **TERMINATED**:`terminated()`方法完成执行；
 
 ![image](https://s2.ax1x.com/2019/11/02/KO9hCT.md.png)
 
@@ -64,8 +64,9 @@ public ThreadPoolExecutor(int corePoolSize,
 ![UML图](https://s2.ax1x.com/2019/11/21/M5LjoD.png)
 ## 源码
 ### Worker
-ThreadPoolExecutor.Worker源码：
-```
+`ThreadPoolExecutor.Worker`源码：
+
+```java
 //ThreadPoolExecutor 的内部类，继承自 AQS，实现了不可重入的互斥锁。
 //在线程池中持有一个 Worker 集合，一个 Worker 对应一个工作线程。
 //当线程池启动时，对应的Worker会执行池中的任务，执行完毕后从阻塞队列里获取一个新的任务继续执行。
@@ -129,11 +130,13 @@ private final class Worker
     }
 ```
 ### ThreadPoolExecutor
-ThreadPoolExecutor核心属性：
-```
+`ThreadPoolExecutor`核心属性：
+
+```java
 public class ThreadPoolExecutor extends AbstractExecutorService {
     //ctl封装了两个字段：workerCount(有效线程数)和runState(线程池状态)
     //ctl使用低29位表示线程池中的线程数，高3位表示线程池的运行状态
+    //线程池初始状态为RUNNING
     private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
     //任务线程数量所占的int的位数
     private static final int COUNT_BITS = Integer.SIZE - 3;
@@ -184,16 +187,14 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     //最大线程池大小
     private volatile int maximumPoolSize;
     //默认拒绝策略
-    private static final RejectedExecutionHandler defaultHandler =
-        new AbortPolicy();
+    private static final RejectedExecutionHandler defaultHandler = new AbortPolicy();
     //针对shutdown和shutdownNow的运行权限许可
-    private static final RuntimePermission shutdownPerm =
-        new RuntimePermission("modifyThread");
+    private static final RuntimePermission shutdownPerm = new RuntimePermission("modifyThread");
 }
 ```
 #### execute()
-ThreadPoolExecutor.execute()方法源码：
-```
+
+```java
     //提交一个任务到线程池，任务不一定会立即执行。
     //提交的任务可能在一个新的线程中执行，也可能在已经存在的空闲线程中执行。
     //如果由于池关闭或者池容量已经饱和导致任务无法提交，那么就根据拒绝策略RejectedExecutionHandler处理提交过来的任务。
@@ -206,6 +207,7 @@ ThreadPoolExecutor.execute()方法源码：
                 return;
             c = ctl.get();
         }
+        //非阻塞式入队
         if (isRunning(c) && workQueue.offer(command)) {
             int recheck = ctl.get();
             if (! isRunning(recheck) && remove(command))
@@ -219,13 +221,13 @@ ThreadPoolExecutor.execute()方法源码：
 ```
 `execute`运行的三种情况：
 
-- 如果正在运行线程少于corePoolSize，通过addWorker方法尝试开启一个新的线程并把提交的任务作为它的firstTask运行。addWorker会检查ctl状态的状态（runState和workerCount）来判断是否可以添加新的线程。
-- 如果addWorker执行失败（返回false），就把任务添加到等待队列。这里需要对ctl进行双重检查，因为从任务入队到入队完成可能有线程死掉，或者在进入此方法后线程池被关闭。所以我们要在入队后重新检查池状态，如果有必要，就回滚入队操作。
+- 如果正在运行线程少于`corePoolSize`，通过`addWorker`方法尝试开启一个新的线程并把提交的任务作为它的`firstTask`运行。`addWorker`会检查**ctl状态**的状态（`runState`和`workerCount`）来判断是否可以添加新的线程。
+- 如果`addWorker`执行失败（返回false），就把任务添加到等待队列。这里需要对`ctl`进行双重检查，因为从任务入队到入队完成可能有线程死掉，或者在进入此方法后线程池被关闭。所以我们要在入队后重新检查池状态，如果有必要，就回滚入队操作。
 - 如果任务不能入队，我们再次尝试增加一个新的线程。如果添加失败，就意味着池被关闭或已经饱和，这种情况就需要根据拒绝策略来处理任务。
 
 #### addWorker()
-ThreadPoolExecutor.addWorker()源码：
-```
+
+```java
 private boolean addWorker(Runnable firstTask, boolean core) {
         retry:
         for (;;) {
@@ -246,7 +248,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
                 if (wc >= CAPACITY ||
                     wc >= (core ? corePoolSize : maximumPoolSize))
                     return false;
-                //工作线程数+1
+                //CAS成功，工作线程数+1
                 if (compareAndIncrementWorkerCount(c))
                     break retry;
                 c = ctl.get();  // Re-read ctl
@@ -305,8 +307,8 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 ```
 
 #### addWorkerFailed()
-ThreadPoolExecutor.addWorkerFailed()源码：
-```
+
+```java
     private void addWorkerFailed(Worker w) {
         final ReentrantLock mainLock = this.mainLock;
         mainLock.lock();
@@ -322,8 +324,10 @@ ThreadPoolExecutor.addWorkerFailed()源码：
     }
 ```
 #### runWorker
-`ThreadPoolExecutor.addWorker()`方法里调用`t.start()`时调用runWorker()。
-```
+
+`ThreadPoolExecutor.addWorker()`方法里调用`t.start()`时调用`runWorker()`。
+
+```java
 final void runWorker(Worker w) {
         Thread wt = Thread.currentThread();
         Runnable task = w.firstTask;
@@ -376,8 +380,8 @@ final void runWorker(Worker w) {
     }
 ```
 #### getTask
-ThreadPoolExecutor.getTask()源码：
-```
+
+```java
     //从阻塞队列中取任务的方法
     private Runnable getTask() {
         //队列中取任务是否超时
@@ -423,15 +427,17 @@ ThreadPoolExecutor.getTask()源码：
     }
 ```
 
-ThreadPoolExecutor.getTask()以下情况会返回null，使Work线程退出：
+`ThreadPoolExecutor.getTask()`以下情况会返回null，使Work线程退出：
+
 - 工作线程数大于`maximumPoolSize`;
-- 线程池已停止（STOP）
-- 线程池已关闭（SHUTDOWN）且阻塞队列为空
-- 等待任务超时
+- 线程池已停止（**STOP**）;
+- 线程池已关闭（**SHUTDOWN**）且阻塞队列为空;
+- 等待任务超时;
 
 #### processWorkerExit
+
 `runWorker()`中线程最后处理完任务后，调用`processWorkerExit`退出逻辑:
-```
+```java
     private void processWorkerExit(Worker w, boolean completedAbruptly) {
         //如果线程中断，会抛异常，进入finally,则completedAbruptly为true
         if (completedAbruptly) // If abrupt, then workerCount wasn't adjusted
@@ -470,8 +476,8 @@ ThreadPoolExecutor.getTask()以下情况会返回null，使Work线程退出：
     }
 ```
 #### tryTerminate
-尝试终止线程池,在shutdow()、shutdownNow()、remove()中均是通过此方法来终止线程池。
-```
+尝试终止线程池,在`shutdow()`、`shutdownNow()`、`remove`()中均是通过此方法来终止线程池。
+```java
     final void tryTerminate() {
         for (;;) {
             int c = ctl.get();
@@ -515,7 +521,7 @@ ThreadPoolExecutor.getTask()以下情况会返回null，使Work线程退出：
 
 #### shutdown
 启动一个有序的关闭方式，在关闭之前已提交的任务会被执行，但不会接收新任务。
-```
+```java
     public void shutdown() {
         final ReentrantLock mainLock = this.mainLock;
         mainLock.lock();
@@ -537,7 +543,7 @@ ThreadPoolExecutor.getTask()以下情况会返回null，使Work线程退出：
 ```
 #### shutdownNow
 停止线程池内所有的任务（包括正在执行和正在等待的任务），并返回正在等待执行的任务列表。
-```
+```java
     public List<Runnable> shutdownNow() {
         List<Runnable> tasks;
         final ReentrantLock mainLock = this.mainLock;
@@ -559,6 +565,6 @@ ThreadPoolExecutor.getTask()以下情况会返回null，使Work线程退出：
         return tasks;
     }
 ```
-shutdcown 和 shutdownNow的区别：
+`shutdcown` 和 `shutdownNow`的区别：
 
-- `shutdown` 会把当前池状态改为`SHUTDOWN`，表示还会继续运行池内已经提交的任务，然后中断所有的空闲工作线程 ；但 `shutdownNow` 直接把池状态改为`STOP`，也就是说不会再运行已存在的任务，然后会**中断所有工作线程**。
+- `shutdown` 会把当前池状态改为**`SHUTDOWN`**，表示还会**继续运行池内已经提交的任务，然后中断所有的空闲工作线程** ；但 `shutdownNow` 直接把池状态改为**`STOP`**，也就是说不会再运行已存在的任务，然后会**中断所有工作线程**。

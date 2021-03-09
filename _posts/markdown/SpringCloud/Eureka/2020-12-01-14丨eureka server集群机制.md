@@ -15,7 +15,7 @@ tags:
 ## 定时刷新eureka server集群列表
 `EurekaBootStrap`初始化eureka server上下文时，会初始化其它eureka server集群地址，代表其它eureka server的PeerEurekaNode列表peerEurekaNodes。
 
-```
+```java
 //eureka server上下文初始化
 EurekaBootStrap#initEurekaServerContext(){
     ...
@@ -144,7 +144,7 @@ PeerEurekaNodes#updatePeerEurekaNodes(List<String> newPeerUrls) {
 ## registry.syncUp()
 eureka server自己本身就是一个eureka client，在初始化时会找任意一个eureka server节点拉取全部注册表，获取到所有服务实例信息。
 
-```
+```java
 //eureka server上下文初始化
 EurekaBootStrap#initEurekaServerContext(){
     ...
@@ -190,7 +190,7 @@ PeerAwareInstanceRegistryImpl#syncUp() {
 ## 注册、下线、故障、心跳
 `ApplicationResource#addInstance()`方法，在自己本地完成注册，`PeerAwareInstanceRegistryImpl#register()->PeerAwareInstanceRegistryImpl#replicateToPeers()`,把这次服务实例注册同步到其它所有eureka server节点，其它eureka server节点接收操作请求只在自己本地执行，不会再次传播到其它eureka server。
 
-```
+```java
 ApplicationResource#addInstance(InstanceInfo info, @HeaderParam(PeerEurekaNode.HEADER_REPLICATION) String isReplication) {
     ...
     registry.register(info, "true".equals(isReplication));

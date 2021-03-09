@@ -14,7 +14,7 @@ tags:
 ## 向队列中放入任务
 `ApplicationResource#addInstance()-->PeerAwareInstanceRegistryImpl#register()-->PeerAwareInstanceRegistryImpl#replicateToPeers-->PeerAwareInstanceRegistryImpl#replicateInstanceActionsToPeers-->PeerEurekaNode#register-->TaskDispatcher#process()`
 
-```
+```java
 public void register(final InstanceInfo info) throws Exception {
     long expiryTime = System.currentTimeMillis() + getLeaseRenewalOf(info);
     batchingDispatcher.process(
@@ -24,8 +24,7 @@ public void register(final InstanceInfo info) throws Exception {
                     return replicationClient.register(info);
                 }
             },
-            expiryTime
-    );
+            expiryTime);
 }
 //创建任务调度程序
 TaskDispatchers#createBatchingTaskDispatcher(String id,int maxBufferSize,int workloadSize, int workerCount, long maxBatchingDelay, long congestionRetryDelayMs,long     networkFailureRetryMs,TaskProcessor<T> taskProcessor) {
@@ -57,7 +56,7 @@ AcceptorExecutor#process(ID id, T task, long expiryTime) {
 ## 拆分队列
 
 
-```
+```java
 //待处理任务的id
 private final Deque<ID> processingOrder = new LinkedList<>();
 //待处理任务
@@ -155,7 +154,7 @@ class AcceptorRunner implements Runnable {
 }
 ```
 ## 取待处理队列中的数据打包
-```
+```java
 //queue中放入打包好的批处理任务
 private final BlockingQueue<List<TaskHolder<ID, T>>> batchWorkQueue = new LinkedBlockingQueue<>();
 
@@ -189,7 +188,7 @@ AcceptorRunner#assignBatchWork() {
 }
 ```
 ## 批处理打包的queue
-```
+```java
 //线程处理打包好的queue
 static class BatchWorkerRunnable<ID, T> extends WorkerRunnable<ID, T> {
     BatchWorkerRunnable(String workerName,
@@ -280,7 +279,7 @@ Jersey2ReplicationClient#submitBatchUpdates(ReplicationList replicationList) {
 }
 ```
 ## 接收批量复制事件
-```
+```java
 PeerReplicationResource#batchReplication(ReplicationList replicationList) {
     try {
         ReplicationListResponse batchResponse = new ReplicationListResponse();

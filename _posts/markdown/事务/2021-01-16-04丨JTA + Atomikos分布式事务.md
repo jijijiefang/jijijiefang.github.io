@@ -203,7 +203,7 @@ private void setThreadMappings ( CompositeTransaction ct , Thread thread )
 
 ### XA START指令
 
-分支事务发送**XA START**命令，调用prepareStatement，分支事务加入全局事务。
+分支事务发送**XA START**命令，调用`prepareStatement`，分支事务加入全局事务。
 
 `AtomikosConnectionProxy#invoke()->AtomikosConnectionProxy#enlist()->SessionHandleState#notifyBeforeUse()->`
 `TransactionContext#checkEnlistBeforeUse()->NotInBranchStateHandler#checkEnlistBeforeUse()->new BranchEnlistedStateHandler()->XAResourceTransaction#resume()->XAResource#start()->XA START 指令`

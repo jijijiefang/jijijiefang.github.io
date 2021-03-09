@@ -11,19 +11,15 @@ tags:
 # Semaphore
 ## 简介
 JDK注释：
->A counting semaphore.  Conceptually, a semaphore maintains a set of
-permits.  Each {@link #acquire} blocks if necessary until a permit is
-available, and then takes it.  Each {@link #release} adds a permit,
-potentially releasing a blocking acquirer.<br>
-However, no actual permit objects are used; the {@code Semaphore} just
-keeps a count of the number available and acts accordingly
+>A counting semaphore.  Conceptually, a semaphore maintains a set of permits.  Each {@link #acquire} blocks if necessary until a permit is available, and then takes it.  Each {@link #release} adds a permit, potentially releasing a blocking acquirer.<br>
+However, no actual permit objects are used; the {@code Semaphore} just keeps a count of the number available and acts accordingly
 
 翻译：
 - `Semaphore`是一个计数信号量。
 - 从概念上理解，`Semaphore`包含一组许可证。
 - 如果有需要的话，每个`acquire()`方法都会阻塞，直到获取一个可用的许可证。
 - 每个`release()`方法都会释放持有许可证的线程，并且归还`Semaphore`一个可用的许可证。
-- 然而，实际上并没有真实的许可证对象供线程使用，`Semaphore`只是对可用的数量进行管理维护
+- 然而，实际上并没有真实的许可证对象供线程使用，`Semaphore`只是对可用的数量进行管理维护。
 
 ## 原理
 ### 类图

@@ -405,7 +405,7 @@ public void runPinger() throws Exception {
 }
 ```
 ### SerialPingStrategy
-```
+```java
 private static class SerialPingStrategy implements IPingStrategy {
     @Override
     public boolean[] pingServers(IPing ping, Server[] servers) {
@@ -429,7 +429,7 @@ private static class SerialPingStrategy implements IPingStrategy {
 ```
 ### NIWSDiscoveryPing#isAlive
 简单的根据每个服务实例的状态是否存活来判断。
-```
+```java
 NIWSDiscoveryPing#isAlive(Server server) {
     boolean isAlive = true;
     if (server!=null && server instanceof DiscoveryEnabledServer){
