@@ -274,7 +274,7 @@ jvmti->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_CLASS_PREPARE, NULL);
 
 3.利用SIGPROF信号来进行定时采样：
 
-```
+```c++
 // 这里信号handler传进来的的ucontext即AsyncGetCallTrace需要的ucontext
 void signal_handler(int signo, siginfo_t *siginfo, void *ucontext) {
     // 使用AsyncCallTrace进行采样，注意处理num_frames为负的异常情况
